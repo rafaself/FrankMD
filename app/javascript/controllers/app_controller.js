@@ -1978,38 +1978,42 @@ export default class extends Controller {
     if (!this.typewriterModeEnabled) return
     if (!this.hasTextareaTarget) return
 
-    const textarea = this.textareaTarget
-    const text = textarea.value
-    const cursorPos = textarea.selectionStart
+    // Use requestAnimationFrame to run after browser's default scroll behavior
+    requestAnimationFrame(() => {
+      const textarea = this.textareaTarget
+      const text = textarea.value
+      const cursorPos = textarea.selectionStart
 
-    // Calculate which line the cursor is on
-    const textBeforeCursor = text.substring(0, cursorPos)
-    const linesBefore = textBeforeCursor.split("\n").length
+      // Calculate which line the cursor is on
+      const textBeforeCursor = text.substring(0, cursorPos)
+      const linesBefore = textBeforeCursor.split("\n").length
 
-    // Get line height from computed style
-    const style = window.getComputedStyle(textarea)
-    const fontSize = parseFloat(style.fontSize) || 14
-    const lineHeight = parseFloat(style.lineHeight) || fontSize * 1.6
+      // Get line height from computed style
+      const style = window.getComputedStyle(textarea)
+      const fontSize = parseFloat(style.fontSize) || 14
+      // lineHeight might be "normal" which parseFloat returns NaN
+      let lineHeight = parseFloat(style.lineHeight)
+      if (isNaN(lineHeight)) {
+        lineHeight = fontSize * 1.5
+      }
 
-    // Calculate cursor's vertical position (in pixels from top of content)
-    const cursorY = (linesBefore - 1) * lineHeight
+      // Calculate cursor's vertical position (in pixels from top of content)
+      const cursorY = (linesBefore - 1) * lineHeight
 
-    // Target position: 50% from top of visible area (center)
-    const targetY = textarea.clientHeight * 0.5
+      // Target position: 50% from top of visible area (center)
+      const targetY = textarea.clientHeight * 0.5
 
-    // Calculate desired scroll position to put cursor at target
-    const desiredScrollTop = cursorY - targetY
+      // Calculate desired scroll position to put cursor at target
+      const desiredScrollTop = cursorY - targetY
 
-    // Apply scroll (with a small threshold to avoid constant micro-adjustments)
-    const scrollDiff = Math.abs(textarea.scrollTop - desiredScrollTop)
-    if (scrollDiff > lineHeight * 0.5) {
+      // Always apply scroll to keep cursor centered
       textarea.scrollTop = Math.max(0, desiredScrollTop)
-    }
 
-    // Also sync preview if visible
-    if (!this.previewPanelTarget.classList.contains("hidden")) {
-      this.syncPreviewToTypewriter(linesBefore, text.split("\n").length)
-    }
+      // Also sync preview if visible
+      if (!this.previewPanelTarget.classList.contains("hidden")) {
+        this.syncPreviewToTypewriter(linesBefore, text.split("\n").length)
+      }
+    })
   }
 
   // Sync preview scroll in typewriter mode
