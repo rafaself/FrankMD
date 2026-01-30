@@ -110,6 +110,31 @@ class ImagesService
       "https://#{config.aws_s3_bucket}.s3.#{config.aws_region}.amazonaws.com/#{key}"
     end
 
+    # Upload a file from browser (local folder picker)
+    # Saves to notes/images/ directory or uploads to S3
+    def upload_file(uploaded_file, resize: nil, upload_to_s3: false)
+      return { error: "No file provided" } unless uploaded_file
+
+      require "securerandom"
+      require "fileutils"
+
+      # Create temp file
+      temp_dir = Rails.root.join("tmp", "uploads")
+      FileUtils.mkdir_p(temp_dir)
+      temp_path = temp_dir.join("#{SecureRandom.hex(8)}_#{uploaded_file.original_filename}")
+      File.binwrite(temp_path, uploaded_file.read)
+
+      begin
+        if upload_to_s3 && s3_enabled?
+          upload_temp_to_s3(temp_path, uploaded_file.original_filename, resize: resize)
+        else
+          save_to_notes_directory(temp_path, uploaded_file.original_filename, resize: resize)
+        end
+      ensure
+        FileUtils.rm_f(temp_path)
+      end
+    end
+
     def download_and_upload_to_s3(url, resize: nil)
       return nil unless s3_enabled?
 
@@ -282,6 +307,70 @@ class ImagesService
       ensure
         output_file.unlink
       end
+    end
+
+    # Save uploaded file to notes/images/ directory
+    def save_to_notes_directory(temp_path, original_filename, resize: nil)
+      require "fileutils"
+
+      notes_path = Pathname.new(ENV.fetch("NOTES_PATH", Rails.root.join("notes")))
+      images_dir = notes_path.join("images")
+      FileUtils.mkdir_p(images_dir)
+
+      # Generate unique filename with timestamp
+      timestamp = Time.now.strftime("%Y%m%d_%H%M%S")
+      safe_name = original_filename.gsub(/[^a-zA-Z0-9._-]/, "_")
+
+      if resize.present? && resize.to_f > 0
+        # Resize and save - output is always jpg
+        base_name = File.basename(safe_name, ".*")
+        dest_filename = "#{timestamp}_#{base_name}.jpg"
+        resized_data, _content_type, _new_filename = resize_and_compress(Pathname.new(temp_path), dest_filename, resize.to_f)
+        dest_path = images_dir.join(dest_filename)
+        File.binwrite(dest_path, resized_data)
+        { url: "images/#{dest_filename}" }
+      else
+        # Copy as-is
+        dest_filename = "#{timestamp}_#{safe_name}"
+        dest_path = images_dir.join(dest_filename)
+        FileUtils.cp(temp_path, dest_path)
+        { url: "images/#{dest_filename}" }
+      end
+    end
+
+    # Upload a temp file to S3
+    def upload_temp_to_s3(temp_path, original_filename, resize: nil)
+      require "aws-sdk-s3"
+
+      client = Aws::S3::Client.new(
+        access_key_id: config.aws_access_key_id,
+        secret_access_key: config.aws_secret_access_key,
+        region: config.aws_region
+      )
+
+      # Process image if resize ratio provided
+      if resize
+        file_content, content_type, filename = resize_and_compress(Pathname.new(temp_path), original_filename, resize)
+      else
+        file_content = File.binread(temp_path)
+        content_type = content_type_for(Pathname.new(temp_path))
+        filename = original_filename
+      end
+
+      key = "webnotes/#{Time.current.strftime('%Y/%m')}/#{filename}"
+
+      begin
+        client.put_object(
+          bucket: config.aws_s3_bucket,
+          key: key,
+          body: file_content,
+          content_type: content_type
+        )
+      rescue Aws::S3::Errors::AccessControlListNotSupported
+        # Bucket has ACLs disabled, which is fine
+      end
+
+      { url: "https://#{config.aws_s3_bucket}.s3.#{config.aws_region}.amazonaws.com/#{key}" }
     end
   end
 end

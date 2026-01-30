@@ -58,6 +58,16 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes data["error"], "required"
   end
 
+  # === Upload (from browser folder picker) ===
+
+  test "upload returns error when no file provided" do
+    post "/images/upload"
+    assert_response :unprocessable_entity
+
+    data = JSON.parse(response.body)
+    assert_includes data["error"], "No file"
+  end
+
   # Tests that require images to be configured
   class WithImagesConfigured < ActionDispatch::IntegrationTest
     def setup
@@ -142,6 +152,70 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
     test "preview returns 404 for non-existent image" do
       get image_preview_url(path: "nonexistent.jpg")
       assert_response :not_found
+    end
+
+    test "upload saves file to notes/images directory" do
+      # Create a test image file
+      png_data = [
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+        0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+        0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xFE, 0xD4, 0xE7, 0x00, 0x00,
+        0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+      ].pack("C*")
+
+      file = Rack::Test::UploadedFile.new(
+        StringIO.new(png_data),
+        "image/png",
+        original_filename: "test_upload.png"
+      )
+
+      # Set up notes path for this test
+      notes_path = Pathname.new(ENV.fetch("NOTES_PATH", Rails.root.join("notes")))
+      images_dir = notes_path.join("images")
+
+      post "/images/upload", params: { file: file }
+      assert_response :success
+
+      data = JSON.parse(response.body)
+      assert data["url"].start_with?("images/")
+      assert data["url"].include?("test_upload")
+
+      # Clean up
+      created_file = notes_path.join(data["url"])
+      FileUtils.rm_f(created_file) if created_file.exist?
+    end
+
+    test "upload returns error for S3 when not configured" do
+      png_data = [
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+        0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+        0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xFE, 0xD4, 0xE7, 0x00, 0x00,
+        0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+      ].pack("C*")
+
+      file = Rack::Test::UploadedFile.new(
+        StringIO.new(png_data),
+        "image/png",
+        original_filename: "test.png"
+      )
+
+      # S3 is not configured in this test class
+      post "/images/upload", params: { file: file, upload_to_s3: "true" }
+
+      # Should still succeed by falling back to local storage
+      # because upload_to_s3 only works when s3_enabled? is true
+      assert_response :success
+      data = JSON.parse(response.body)
+      assert data["url"].start_with?("images/")
+
+      # Clean up
+      notes_path = Pathname.new(ENV.fetch("NOTES_PATH", Rails.root.join("notes")))
+      created_file = notes_path.join(data["url"])
+      FileUtils.rm_f(created_file) if created_file.exist?
     end
   end
 

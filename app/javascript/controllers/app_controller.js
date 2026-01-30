@@ -97,10 +97,22 @@ export default class extends Controller {
     "youtubeSearchResults",
     "youtubeConfigNotice",
     "youtubeSearchForm",
-    "localImagesConfigNotice",
     "localImagesForm",
+    "localImagesConfigNotice",
     "googleImagesConfigNotice",
-    "googleImagesForm"
+    "googleImagesForm",
+    "imageTabFolder",
+    "imageFolderPanel",
+    "folderApiNotice",
+    "browsePrompt",
+    "localFolderContainer",
+    "localFolderStatus",
+    "localFolderGrid",
+    "folderImageSearch",
+    "s3FolderOption",
+    "uploadFolderToS3",
+    "resizeOptionFolder",
+    "resizeSelectFolder"
   ]
 
   static values = {
@@ -138,6 +150,9 @@ export default class extends Controller {
     this.googleImageLoading = false
     this.googleImageQuery = ""
     this.pinterestImageResults = []
+    this.localFolderImages = []  // Currently displayed images from browser folder picker
+    this.allFolderImages = []    // All images metadata from folder (for filtering)
+    this.folderSearchTimeout = null
 
     // Code snippet state
     this.codeEditMode = false
@@ -1150,28 +1165,27 @@ export default class extends Controller {
     // Hide all S3 options initially
     if (this.hasS3OptionTarget) this.s3OptionTarget.classList.add("hidden")
     if (this.hasS3ExternalOptionTarget) this.s3ExternalOptionTarget.classList.add("hidden")
+    if (this.hasS3FolderOptionTarget) this.s3FolderOptionTarget.classList.add("hidden")
     if (this.hasUploadToS3Target) this.uploadToS3Target.checked = false
     if (this.hasReuploadToS3Target) this.reuploadToS3Target.checked = false
+    if (this.hasUploadFolderToS3Target) this.uploadFolderToS3Target.checked = false
 
-    // Show/hide config notices based on feature availability
-    if (this.hasLocalImagesConfigNoticeTarget && this.hasLocalImagesFormTarget) {
-      this.localImagesConfigNoticeTarget.classList.toggle("hidden", this.imagesEnabled)
-      this.localImagesFormTarget.classList.toggle("hidden", !this.imagesEnabled)
-    }
+    // Setup local folder picker UI
+    this.setupLocalFolderPickerUI()
+
+    // Show/hide Google config notice
     if (this.hasGoogleImagesConfigNoticeTarget && this.hasGoogleImagesFormTarget) {
       this.googleImagesConfigNoticeTarget.classList.toggle("hidden", this.googleImagesEnabled)
       this.googleImagesFormTarget.classList.toggle("hidden", !this.googleImagesEnabled)
     }
 
-    // All tabs are always visible now - config notices shown inside panels when not configured
-
-    // Set initial tab - prefer local if configured, otherwise web
-    let initialTab = this.imagesEnabled ? "local" : "web"
+    // Set initial tab - always show local first (folder picker always available)
+    let initialTab = "local"
 
     // Switch to initial tab
     this.switchImageTab({ currentTarget: { dataset: { tab: initialTab } } })
 
-    // Load local images if enabled
+    // Load local images if server images enabled
     if (this.imagesEnabled) {
       await this.loadImages()
     }
@@ -1179,7 +1193,39 @@ export default class extends Controller {
     this.imageDialogTarget.showModal()
   }
 
+  // Check if File System Access API is available
+  get fileSystemAccessSupported() {
+    return "showDirectoryPicker" in window
+  }
+
+  // Setup the local folder picker UI based on browser support and server config
+  setupLocalFolderPickerUI() {
+    const hasApi = this.fileSystemAccessSupported
+    const hasServerImages = this.imagesEnabled
+    const hasFolderImages = this.localFolderImages.length > 0
+
+    // Show/hide local images config notice
+    if (this.hasLocalImagesConfigNoticeTarget && this.hasLocalImagesFormTarget) {
+      this.localImagesConfigNoticeTarget.classList.toggle("hidden", hasServerImages)
+      this.localImagesFormTarget.classList.toggle("hidden", !hasServerImages)
+    }
+
+    // In folder panel: show API notice, browse prompt, or folder container
+    if (this.hasFolderApiNoticeTarget) {
+      this.folderApiNoticeTarget.classList.toggle("hidden", hasApi)
+    }
+    if (this.hasBrowsePromptTarget) {
+      // Show browse prompt only if API available and no folder images loaded
+      this.browsePromptTarget.classList.toggle("hidden", !hasApi || hasFolderImages)
+    }
+    if (this.hasLocalFolderContainerTarget) {
+      this.localFolderContainerTarget.classList.toggle("hidden", !hasFolderImages)
+    }
+  }
+
   closeImageDialog() {
+    // Clean up object URLs from folder picker to free memory
+    this.cleanupLocalFolderImages()
     this.imageDialogTarget.close()
   }
 
@@ -1238,17 +1284,216 @@ export default class extends Controller {
     }, 300)
   }
 
-  selectImage(event) {
-    const item = event.currentTarget
-    const path = item.dataset.path
-    const name = item.dataset.name
+  // Open browser folder picker
+  async browseLocalFolder() {
+    if (!this.fileSystemAccessSupported) {
+      return
+    }
 
-    // Deselect previous in local grid
-    this.imageGridTarget.querySelectorAll(".image-grid-item").forEach(el => {
-      el.classList.remove("selected")
+    try {
+      const dirHandle = await window.showDirectoryPicker()
+      await this.loadImagesFromDirectory(dirHandle)
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        console.error("Error accessing folder:", err)
+      }
+    }
+  }
+
+  // Read images from directory handle
+  async loadImagesFromDirectory(dirHandle) {
+    // Revoke previous object URLs to free memory
+    this.cleanupLocalFolderImages()
+
+    this.allFolderImages = []
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"]
+
+    try {
+      // Collect all image files
+      for await (const entry of dirHandle.values()) {
+        if (entry.kind === "file") {
+          const name = entry.name.toLowerCase()
+          if (imageExtensions.some(ext => name.endsWith(ext))) {
+            const file = await entry.getFile()
+            this.allFolderImages.push({
+              name: entry.name,
+              file: file,
+              lastModified: file.lastModified,
+              size: file.size
+            })
+          }
+        }
+      }
+
+      // Sort by most recent first
+      this.allFolderImages.sort((a, b) => b.lastModified - a.lastModified)
+
+      // Clear search and display
+      if (this.hasFolderImageSearchTarget) {
+        this.folderImageSearchTarget.value = ""
+      }
+      await this.filterAndDisplayFolderImages("")
+
+      this.setupLocalFolderPickerUI()
+    } catch (err) {
+      console.error("Error reading folder:", err)
+    }
+  }
+
+  // Filter and display folder images based on search term
+  async filterAndDisplayFolderImages(searchTerm) {
+    const maxImages = 10
+    const term = searchTerm.toLowerCase().trim()
+
+    // Filter images by name
+    let filtered = this.allFolderImages
+    if (term) {
+      filtered = this.allFolderImages.filter(img =>
+        img.name.toLowerCase().includes(term)
+      )
+    }
+
+    // Revoke previous object URLs
+    for (const img of this.localFolderImages) {
+      if (img.objectUrl) {
+        URL.revokeObjectURL(img.objectUrl)
+      }
+    }
+
+    // Take top N and create object URLs with dimensions
+    const topImages = filtered.slice(0, maxImages)
+    this.localFolderImages = await Promise.all(topImages.map(async (img) => {
+      const objectUrl = URL.createObjectURL(img.file)
+      const dimensions = await this.getImageDimensions(objectUrl)
+      return {
+        name: img.name,
+        file: img.file,
+        objectUrl: objectUrl,
+        size: img.size,
+        lastModified: img.lastModified,
+        width: dimensions.width,
+        height: dimensions.height
+      }
+    }))
+
+    this.renderLocalFolderImages(filtered.length)
+  }
+
+  // Handle folder image search input
+  onFolderImageSearch() {
+    if (this.folderSearchTimeout) {
+      clearTimeout(this.folderSearchTimeout)
+    }
+
+    this.folderSearchTimeout = setTimeout(() => {
+      const searchTerm = this.folderImageSearchTarget.value
+      this.filterAndDisplayFolderImages(searchTerm)
+    }, 300)
+  }
+
+  // Get image dimensions by loading into an Image element
+  getImageDimensions(url) {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        resolve({ width: img.naturalWidth, height: img.naturalHeight })
+      }
+      img.onerror = () => {
+        resolve({ width: null, height: null })
+      }
+      img.src = url
     })
+  }
 
-    // Also deselect in external grids
+  // Render images from local folder in grid
+  renderLocalFolderImages(totalCount = null) {
+    if (!this.hasLocalFolderGridTarget) return
+
+    if (this.localFolderImages.length === 0) {
+      this.localFolderGridTarget.innerHTML = '<div class="col-span-5 text-center text-[var(--theme-text-muted)] py-8">No images found in folder</div>'
+      if (this.hasLocalFolderStatusTarget) {
+        this.localFolderStatusTarget.textContent = "No images found"
+      }
+      return
+    }
+
+    // Update status with count info
+    if (this.hasLocalFolderStatusTarget) {
+      const shown = this.localFolderImages.length
+      if (totalCount && totalCount > shown) {
+        this.localFolderStatusTarget.textContent = `Showing ${shown} most recent of ${totalCount} images`
+      } else {
+        this.localFolderStatusTarget.textContent = `${shown} image${shown !== 1 ? "s" : ""} found`
+      }
+    }
+
+    const html = this.localFolderImages.map((image, index) => {
+      const sizeKb = Math.round(image.size / 1024)
+      const dimensions = (image.width && image.height) ? `${image.width}x${image.height}` : ""
+      return `
+        <div
+          class="image-grid-item"
+          data-action="click->app#selectLocalFolderImage"
+          data-index="${index}"
+          title="${this.escapeHtml(image.name)}${dimensions ? ` (${dimensions})` : ''} - ${sizeKb} KB"
+        >
+          <img src="${image.objectUrl}" alt="${this.escapeHtml(image.name)}" loading="lazy">
+          ${dimensions ? `<div class="image-dimensions">${dimensions}</div>` : ''}
+        </div>
+      `
+    }).join("")
+
+    this.localFolderGridTarget.innerHTML = html
+  }
+
+  // Select an image from local folder
+  selectLocalFolderImage(event) {
+    const index = parseInt(event.currentTarget.dataset.index)
+    const image = this.localFolderImages[index]
+
+    if (!image) return
+
+    // Deselect previous in all grids
+    this.deselectAllImages()
+
+    // Select new
+    event.currentTarget.classList.add("selected")
+    this.selectedImage = {
+      name: image.name,
+      file: image.file,
+      objectUrl: image.objectUrl,
+      type: "local-folder"
+    }
+
+    // Show options
+    this.imageOptionsTarget.classList.remove("hidden")
+    this.selectedImageNameTarget.textContent = image.name
+    this.insertImageBtnTarget.disabled = false
+
+    // Show S3 folder option (always show resize for folder uploads)
+    if (this.hasS3OptionTarget) this.s3OptionTarget.classList.add("hidden")
+    if (this.hasS3ExternalOptionTarget) this.s3ExternalOptionTarget.classList.add("hidden")
+    if (this.hasS3FolderOptionTarget) {
+      this.s3FolderOptionTarget.classList.remove("hidden")
+    }
+
+    // Pre-fill alt text with filename (without extension)
+    const altText = image.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ")
+    this.imageAltTarget.value = altText
+  }
+
+  // Helper to deselect all images across all grids
+  deselectAllImages() {
+    if (this.hasImageGridTarget) {
+      this.imageGridTarget.querySelectorAll(".image-grid-item").forEach(el => {
+        el.classList.remove("selected")
+      })
+    }
+    if (this.hasLocalFolderGridTarget) {
+      this.localFolderGridTarget.querySelectorAll(".image-grid-item").forEach(el => {
+        el.classList.remove("selected")
+      })
+    }
     if (this.hasGoogleImageGridTarget) {
       this.googleImageGridTarget.querySelectorAll(".external-image-item").forEach(el => {
         el.classList.remove("ring-2", "ring-blue-500")
@@ -1259,6 +1504,59 @@ export default class extends Controller {
         el.classList.remove("ring-2", "ring-blue-500")
       })
     }
+    if (this.hasWebImageGridTarget) {
+      this.webImageGridTarget.querySelectorAll(".external-image-item").forEach(el => {
+        el.classList.remove("ring-2", "ring-blue-500")
+      })
+    }
+  }
+
+  // Cleanup object URLs when dialog closes
+  cleanupLocalFolderImages() {
+    for (const image of this.localFolderImages) {
+      if (image.objectUrl) {
+        URL.revokeObjectURL(image.objectUrl)
+      }
+    }
+    this.localFolderImages = []
+    this.allFolderImages = []
+  }
+
+  // Upload file from local folder to server
+  async uploadLocalFolderImage(file, resize, uploadToS3) {
+    const formData = new FormData()
+    formData.append("file", file)
+    if (resize) formData.append("resize", resize)
+    if (uploadToS3) formData.append("upload_to_s3", "true")
+
+    const response = await fetch("/images/upload", {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": this.csrfToken
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || "Upload failed")
+    }
+
+    return await response.json()
+  }
+
+  // Handle S3 folder checkbox change (no-op, resize always shown)
+  onS3FolderCheckboxChange() {
+    // Resize is always shown for folder uploads, nothing to toggle
+  }
+
+  selectImage(event) {
+    const item = event.currentTarget
+    const path = item.dataset.path
+    const name = item.dataset.name
+
+    // Deselect all images
+    this.deselectAllImages()
 
     // Select new
     item.classList.add("selected")
@@ -1269,12 +1567,15 @@ export default class extends Controller {
     this.selectedImageNameTarget.textContent = name
     this.insertImageBtnTarget.disabled = false
 
-    // Show S3 option for local, hide external S3 option
+    // Show S3 option for local server images, hide others
     if (this.s3Enabled && this.hasS3OptionTarget) {
       this.s3OptionTarget.classList.remove("hidden")
     }
     if (this.hasS3ExternalOptionTarget) {
       this.s3ExternalOptionTarget.classList.add("hidden")
+    }
+    if (this.hasS3FolderOptionTarget) {
+      this.s3FolderOptionTarget.classList.add("hidden")
     }
 
     // Pre-fill alt text with filename (without extension)
@@ -1289,22 +1590,8 @@ export default class extends Controller {
     const title = item.dataset.title || "Image"
     const source = item.dataset.source || "external"
 
-    // Deselect previous in all grids
-    if (this.hasImageGridTarget) {
-      this.imageGridTarget.querySelectorAll(".image-grid-item").forEach(el => {
-        el.classList.remove("selected")
-      })
-    }
-    if (this.hasGoogleImageGridTarget) {
-      this.googleImageGridTarget.querySelectorAll(".external-image-item").forEach(el => {
-        el.classList.remove("ring-2", "ring-blue-500")
-      })
-    }
-    if (this.hasPinterestImageGridTarget) {
-      this.pinterestImageGridTarget.querySelectorAll(".external-image-item").forEach(el => {
-        el.classList.remove("ring-2", "ring-blue-500")
-      })
-    }
+    // Deselect all images
+    this.deselectAllImages()
 
     // Select new
     item.classList.add("ring-2", "ring-blue-500")
@@ -1315,9 +1602,12 @@ export default class extends Controller {
     this.selectedImageNameTarget.textContent = title
     this.insertImageBtnTarget.disabled = false
 
-    // Hide local S3 option, show external S3 option
+    // Hide local S3 options, show external S3 option
     if (this.hasS3OptionTarget) {
       this.s3OptionTarget.classList.add("hidden")
+    }
+    if (this.hasS3FolderOptionTarget) {
+      this.s3FolderOptionTarget.classList.add("hidden")
     }
     if (this.s3Enabled && this.hasS3ExternalOptionTarget) {
       this.s3ExternalOptionTarget.classList.remove("hidden")
@@ -1339,6 +1629,9 @@ export default class extends Controller {
     if (this.hasImageTabLocalTarget) {
       this.imageTabLocalTarget.className = `px-4 py-2 text-sm font-medium border-b-2 ${tab === "local" ? activeClasses : inactiveClasses}`
     }
+    if (this.hasImageTabFolderTarget) {
+      this.imageTabFolderTarget.className = `px-4 py-2 text-sm font-medium border-b-2 ${tab === "folder" ? activeClasses : inactiveClasses}`
+    }
     if (this.hasImageTabWebTarget) {
       this.imageTabWebTarget.className = `px-4 py-2 text-sm font-medium border-b-2 ${tab === "web" ? activeClasses : inactiveClasses}`
     }
@@ -1352,6 +1645,9 @@ export default class extends Controller {
     // Show/hide panels
     if (this.hasImageLocalPanelTarget) {
       this.imageLocalPanelTarget.classList.toggle("hidden", tab !== "local")
+    }
+    if (this.hasImageFolderPanelTarget) {
+      this.imageFolderPanelTarget.classList.toggle("hidden", tab !== "folder")
     }
     if (this.hasImageWebPanelTarget) {
       this.imageWebPanelTarget.classList.toggle("hidden", tab !== "web")
@@ -1579,7 +1875,7 @@ export default class extends Controller {
     let imageUrl
 
     if (this.selectedImage.type === "local") {
-      // Local image
+      // Local server image
       const uploadToS3 = this.s3Enabled && this.hasUploadToS3Target && this.uploadToS3Target.checked
       const resizeRatio = uploadToS3 && this.hasResizeSelectLocalTarget ? this.resizeSelectLocalTarget.value : ""
       imageUrl = `/images/preview/${this.encodePath(this.selectedImage.path)}`
@@ -1616,8 +1912,36 @@ export default class extends Controller {
 
         this.hideImageLoading()
       }
+    } else if (this.selectedImage.type === "local-folder") {
+      // Image from browser folder picker - must upload to server
+      const uploadToS3 = this.s3Enabled && this.hasUploadFolderToS3Target && this.uploadFolderToS3Target.checked
+      const resizeRatio = this.hasResizeSelectFolderTarget ? this.resizeSelectFolderTarget.value : ""
+
+      // Show loading state
+      const loadingMsg = uploadToS3
+        ? (resizeRatio ? "Resizing and uploading to S3..." : "Uploading to S3...")
+        : (resizeRatio ? "Resizing and saving..." : "Saving image...")
+      this.showImageLoading(loadingMsg)
+      this.insertImageBtnTarget.disabled = true
+
+      try {
+        const data = await this.uploadLocalFolderImage(
+          this.selectedImage.file,
+          resizeRatio,
+          uploadToS3
+        )
+        imageUrl = data.url
+      } catch (error) {
+        console.error("Error uploading folder image:", error)
+        alert(`Failed to upload image: ${error.message}`)
+        this.hideImageLoading()
+        this.insertImageBtnTarget.disabled = false
+        return
+      }
+
+      this.hideImageLoading()
     } else {
-      // External image (Google/Pinterest)
+      // External image (Google/Pinterest/Web)
       const reuploadToS3 = this.s3Enabled && this.hasReuploadToS3Target && this.reuploadToS3Target.checked
       const resizeRatio = reuploadToS3 && this.hasResizeSelectExternalTarget ? this.resizeSelectExternalTarget.value : ""
       imageUrl = this.selectedImage.url

@@ -4,8 +4,8 @@ require "net/http"
 require "json"
 
 class ImagesController < ApplicationController
-  skip_forgery_protection only: [ :upload_to_s3, :upload_external_to_s3 ]
-  before_action :require_images_enabled, except: [ :config, :search_google, :search_pinterest ]
+  skip_forgery_protection only: [ :upload, :upload_to_s3, :upload_external_to_s3 ]
+  before_action :require_images_enabled, except: [ :config, :upload, :search_google, :search_pinterest ]
 
   # GET /images/config
   def config
@@ -34,6 +34,31 @@ class ImagesController < ApplicationController
     else
       head :not_found
     end
+  end
+
+  # POST /images/upload
+  # Upload a file from browser (local folder picker)
+  def upload
+    file = params[:file]
+    resize = params[:resize].presence
+    upload_to_s3 = params[:upload_to_s3] == "true"
+
+    unless file.present?
+      return render json: { error: "No file provided" }, status: :unprocessable_entity
+    end
+
+    resize_ratio = parse_resize_ratio(resize)
+    result = ImagesService.upload_file(file, resize: resize_ratio, upload_to_s3: upload_to_s3)
+
+    if result[:url]
+      render json: { url: result[:url] }
+    else
+      render json: { error: result[:error] || "Upload failed" }, status: :unprocessable_entity
+    end
+  rescue StandardError => e
+    Rails.logger.error "File upload error: #{e.class} - #{e.message}"
+    Rails.logger.error e.backtrace.first(10).join("\n")
+    render json: { error: "#{e.class}: #{e.message}" }, status: :unprocessable_entity
   end
 
   # POST /images/upload_to_s3
