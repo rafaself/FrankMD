@@ -28,14 +28,36 @@ class ImagesService
 
       files.map do |file|
         relative_path = file.relative_path_from(images_path).to_s
+        dimensions = get_image_dimensions(file)
         {
           name: file.basename.to_s,
           path: relative_path,
           full_path: file.to_s,
           mtime: file.mtime.iso8601,
-          size: file.size
+          size: file.size,
+          width: dimensions[:width],
+          height: dimensions[:height]
         }
       end
+    end
+
+    def get_image_dimensions(path)
+      require "open3"
+
+      # Use ImageMagick identify to get dimensions
+      stdout, stderr, status = Open3.capture3("identify", "-format", "%wx%h", path.to_s)
+
+      if status.success? && stdout.present?
+        match = stdout.strip.match(/(\d+)x(\d+)/)
+        if match
+          return { width: match[1].to_i, height: match[2].to_i }
+        end
+      end
+
+      { width: nil, height: nil }
+    rescue StandardError => e
+      Rails.logger.debug "Could not get dimensions for #{path}: #{e.message}"
+      { width: nil, height: nil }
     end
 
     def find_image(path)

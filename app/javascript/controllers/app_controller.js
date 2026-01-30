@@ -1296,17 +1296,21 @@ export default class extends Controller {
       return
     }
 
-    const html = images.map(image => `
-      <div
-        class="image-grid-item ${this.selectedImage?.path === image.path ? 'selected' : ''}"
-        data-action="click->app#selectImage"
-        data-path="${this.escapeHtml(image.path)}"
-        data-name="${this.escapeHtml(image.name)}"
-        title="${this.escapeHtml(image.name)}"
-      >
-        <img src="/images/preview/${this.encodePath(image.path)}" alt="${this.escapeHtml(image.name)}" loading="lazy">
-      </div>
-    `).join("")
+    const html = images.map(image => {
+      const dimensions = (image.width && image.height) ? `${image.width}x${image.height}` : ""
+      return `
+        <div
+          class="image-grid-item ${this.selectedImage?.path === image.path ? 'selected' : ''}"
+          data-action="click->app#selectImage"
+          data-path="${this.escapeHtml(image.path)}"
+          data-name="${this.escapeHtml(image.name)}"
+          title="${this.escapeHtml(image.name)}${dimensions ? ` (${dimensions})` : ''}"
+        >
+          <img src="/images/preview/${this.encodePath(image.path)}" alt="${this.escapeHtml(image.name)}" loading="lazy">
+          ${dimensions ? `<div class="image-dimensions">${dimensions}</div>` : ''}
+        </div>
+      `
+    }).join("")
 
     this.imageGridTarget.innerHTML = html
   }
@@ -1627,30 +1631,34 @@ export default class extends Controller {
       return
     }
 
-    container.innerHTML = images.map((image, index) => `
-      <button
-        type="button"
-        data-index="${index}"
-        data-url="${this.escapeHtml(image.url)}"
-        data-thumbnail="${this.escapeHtml(image.thumbnail || image.url)}"
-        data-title="${this.escapeHtml(image.title || '')}"
-        data-source="${this.escapeHtml(image.source || '')}"
-        data-action="click->app#selectExternalImage"
-        class="external-image-item relative aspect-square rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-900 hover:ring-2 hover:ring-blue-400 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-        title="${this.escapeHtml(image.title || 'Image')}"
-      >
-        <img
-          src="${this.escapeHtml(image.thumbnail || image.url)}"
-          alt="${this.escapeHtml(image.title || 'Image')}"
-          class="w-full h-full object-cover"
-          loading="lazy"
-          onerror="this.parentElement.remove()"
+    container.innerHTML = images.map((image, index) => {
+      const dimensions = (image.width && image.height) ? `${image.width}x${image.height}` : ""
+      return `
+        <button
+          type="button"
+          data-index="${index}"
+          data-url="${this.escapeHtml(image.url)}"
+          data-thumbnail="${this.escapeHtml(image.thumbnail || image.url)}"
+          data-title="${this.escapeHtml(image.title || '')}"
+          data-source="${this.escapeHtml(image.source || '')}"
+          data-action="click->app#selectExternalImage"
+          class="external-image-item relative aspect-square rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-900 hover:ring-2 hover:ring-blue-400 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+          title="${this.escapeHtml(image.title || 'Image')}${dimensions ? ` (${dimensions})` : ''}"
         >
-        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1">
-          <div class="text-white text-xs truncate">${this.escapeHtml(image.source || '')}</div>
-        </div>
-      </button>
-    `).join("")
+          <img
+            src="${this.escapeHtml(image.thumbnail || image.url)}"
+            alt="${this.escapeHtml(image.title || 'Image')}"
+            class="w-full h-full object-cover"
+            loading="lazy"
+            onerror="this.parentElement.remove()"
+          >
+          ${dimensions ? `<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono">${dimensions}</div>` : ''}
+          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1">
+            <div class="text-white text-xs truncate">${this.escapeHtml(image.source || '')}</div>
+          </div>
+        </button>
+      `
+    }).join("")
   }
 
   async insertImage() {
