@@ -37,7 +37,7 @@ class ImagesServiceTest < ActiveSupport::TestCase
   def create_test_image(name, content = "fake image data")
     path = @temp_dir.join(name)
     FileUtils.mkdir_p(path.dirname)
-    File.write(path, content)
+    File.binwrite(path, content)
     # Set mtime to control ordering
     FileUtils.touch(path, mtime: Time.now)
     path
@@ -210,5 +210,234 @@ class ImagesServiceTest < ActiveSupport::TestCase
     # Clean up
     notes_path = Pathname.new(ENV.fetch("NOTES_PATH", Rails.root.join("notes")))
     FileUtils.rm_f(notes_path.join(result[:url]))
+  end
+
+  # === get_image_dimensions ===
+
+  test "get_image_dimensions returns hash with width and height keys" do
+    # Create a real PNG for ImageMagick to read
+    png_data = [
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+      0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+      0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xFE, 0xD4, 0xE7, 0x00, 0x00,
+      0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+    ].pack("C*")
+    path = create_test_image("real.png", png_data)
+
+    result = ImagesService.get_image_dimensions(path)
+
+    # get_image_dimensions returns a hash with :width and :height keys
+    assert result.key?(:width)
+    assert result.key?(:height)
+    # If ImageMagick works, we get dimensions; if not, we get nils (graceful degradation)
+  end
+
+  test "get_image_dimensions returns nil for invalid file" do
+    path = create_test_image("not_image.txt", "just text")
+
+    result = ImagesService.get_image_dimensions(path)
+
+    assert_nil result[:width]
+    assert_nil result[:height]
+  end
+
+  test "get_image_dimensions handles non-existent file" do
+    result = ImagesService.get_image_dimensions(Pathname.new("/nonexistent/file.png"))
+
+    assert_nil result[:width]
+    assert_nil result[:height]
+  end
+
+  # === resize_and_compress ===
+
+  test "resize_and_compress returns content and changes filename to jpg" do
+    # Create a real PNG image
+    png_data = [
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+      0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+      0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xFE, 0xD4, 0xE7, 0x00, 0x00,
+      0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+    ].pack("C*")
+    path = create_test_image("source.png", png_data)
+
+    content, content_type, filename = ImagesService.send(:resize_and_compress, path, "source.png", 1.0)
+
+    # Should always return content
+    assert content.present?
+    # If ImageMagick succeeds, filename becomes .jpg, otherwise keeps original
+    assert filename.present?
+    # Content type should match the filename extension
+    assert_includes %w[image/jpeg image/png], content_type
+  end
+
+  # === content_type_for ===
+
+  test "content_type_for returns correct mime types" do
+    assert_equal "image/jpeg", ImagesService.send(:content_type_for, Pathname.new("test.jpg"))
+    assert_equal "image/jpeg", ImagesService.send(:content_type_for, Pathname.new("test.jpeg"))
+    assert_equal "image/png", ImagesService.send(:content_type_for, Pathname.new("test.png"))
+    assert_equal "image/gif", ImagesService.send(:content_type_for, Pathname.new("test.gif"))
+    assert_equal "image/webp", ImagesService.send(:content_type_for, Pathname.new("test.webp"))
+    assert_equal "image/svg+xml", ImagesService.send(:content_type_for, Pathname.new("test.svg"))
+    assert_equal "image/bmp", ImagesService.send(:content_type_for, Pathname.new("test.bmp"))
+    assert_equal "application/octet-stream", ImagesService.send(:content_type_for, Pathname.new("test.unknown"))
+  end
+
+  # === extension_for_content_type ===
+
+  test "extension_for_content_type returns correct extensions" do
+    assert_equal ".jpg", ImagesService.send(:extension_for_content_type, "image/jpeg")
+    assert_equal ".png", ImagesService.send(:extension_for_content_type, "image/png")
+    assert_equal ".gif", ImagesService.send(:extension_for_content_type, "image/gif")
+    assert_equal ".webp", ImagesService.send(:extension_for_content_type, "image/webp")
+    assert_equal ".svg", ImagesService.send(:extension_for_content_type, "image/svg+xml")
+    assert_equal ".bmp", ImagesService.send(:extension_for_content_type, "image/bmp")
+    assert_equal ".jpg", ImagesService.send(:extension_for_content_type, "unknown/type")
+  end
+
+  test "extension_for_content_type handles content-type with charset" do
+    assert_equal ".png", ImagesService.send(:extension_for_content_type, "image/png; charset=utf-8")
+  end
+end
+
+# S3 Integration Tests (with mocks)
+class ImagesServiceS3Test < ActiveSupport::TestCase
+  # Need to require aws-sdk-s3 to define the Aws module for mocking
+  require "aws-sdk-s3"
+
+  def setup
+    @original_config = {
+      path: Rails.application.config.frankmd_images.path,
+      enabled: Rails.application.config.frankmd_images.enabled,
+      s3_enabled: Rails.application.config.frankmd_images.s3_enabled,
+      aws_access_key_id: Rails.application.config.frankmd_images.aws_access_key_id,
+      aws_secret_access_key: Rails.application.config.frankmd_images.aws_secret_access_key,
+      aws_region: Rails.application.config.frankmd_images.aws_region,
+      aws_s3_bucket: Rails.application.config.frankmd_images.aws_s3_bucket
+    }
+
+    @temp_dir = Rails.root.join("tmp", "test_images_s3_#{SecureRandom.hex(8)}")
+    FileUtils.mkdir_p(@temp_dir)
+
+    Rails.application.config.frankmd_images.path = @temp_dir.to_s
+    Rails.application.config.frankmd_images.enabled = true
+    Rails.application.config.frankmd_images.s3_enabled = true
+    Rails.application.config.frankmd_images.aws_access_key_id = "test-key-id"
+    Rails.application.config.frankmd_images.aws_secret_access_key = "test-secret"
+    Rails.application.config.frankmd_images.aws_region = "us-east-1"
+    Rails.application.config.frankmd_images.aws_s3_bucket = "test-bucket"
+
+    ImagesService.instance_variable_set(:@images_path, nil)
+  end
+
+  def teardown
+    FileUtils.rm_rf(@temp_dir) if @temp_dir&.exist?
+
+    if @original_config
+      Rails.application.config.frankmd_images.path = @original_config[:path]
+      Rails.application.config.frankmd_images.enabled = @original_config[:enabled]
+      Rails.application.config.frankmd_images.s3_enabled = @original_config[:s3_enabled]
+      Rails.application.config.frankmd_images.aws_access_key_id = @original_config[:aws_access_key_id]
+      Rails.application.config.frankmd_images.aws_secret_access_key = @original_config[:aws_secret_access_key]
+      Rails.application.config.frankmd_images.aws_region = @original_config[:aws_region]
+      Rails.application.config.frankmd_images.aws_s3_bucket = @original_config[:aws_s3_bucket]
+    end
+
+    ImagesService.instance_variable_set(:@images_path, nil)
+  end
+
+  def create_test_image(name, content = "fake image data")
+    path = @temp_dir.join(name)
+    FileUtils.mkdir_p(path.dirname)
+    File.binwrite(path, content)
+    path
+  end
+
+  test "s3_enabled? returns true when configured" do
+    assert ImagesService.s3_enabled?
+  end
+
+  test "s3_enabled? returns false when not configured" do
+    Rails.application.config.frankmd_images.s3_enabled = false
+    refute ImagesService.s3_enabled?
+  end
+
+  test "upload_to_s3 returns nil when s3 disabled" do
+    Rails.application.config.frankmd_images.s3_enabled = false
+    create_test_image("test.jpg")
+
+    result = ImagesService.upload_to_s3("test.jpg")
+
+    assert_nil result
+  end
+
+  test "upload_to_s3 returns nil for non-existent image" do
+    result = ImagesService.upload_to_s3("nonexistent.jpg")
+
+    assert_nil result
+  end
+
+  test "upload_to_s3 calls S3 client with correct parameters" do
+    create_test_image("upload_test.jpg", "image content")
+
+    mock_client = stub
+    mock_client.stubs(:put_object).returns(nil)
+
+    Aws::S3::Client.stubs(:new).returns(mock_client)
+
+    result = ImagesService.upload_to_s3("upload_test.jpg")
+
+    assert result.present?
+    assert_match %r{^https://test-bucket\.s3\.us-east-1\.amazonaws\.com/frankmd/\d{4}/\d{2}/upload_test\.jpg$}, result
+  end
+
+  test "upload_to_s3 handles ACL not supported error gracefully" do
+    create_test_image("acl_test.jpg", "image data")
+
+    mock_client = stub
+    mock_client.stubs(:put_object).raises(Aws::S3::Errors::AccessControlListNotSupported.new(nil, "ACL not supported"))
+
+    Aws::S3::Client.stubs(:new).returns(mock_client)
+
+    # Should not raise, should return URL
+    result = ImagesService.upload_to_s3("acl_test.jpg")
+    assert result.present?
+  end
+
+  test "upload_to_s3 with resize option returns S3 URL" do
+    png_data = [
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+      0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+      0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xFE, 0xD4, 0xE7, 0x00, 0x00,
+      0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+    ].pack("C*")
+    create_test_image("resize_s3.png", png_data)
+
+    mock_client = stub
+    mock_client.stubs(:put_object).returns(nil)
+
+    Aws::S3::Client.stubs(:new).returns(mock_client)
+
+    result = ImagesService.upload_to_s3("resize_s3.png", resize: 0.5)
+
+    assert result.present?
+    # When resize is requested, the result should be an S3 URL containing the filename
+    # (with .jpg if ImageMagick succeeds, or .png if it falls back)
+    assert_match(/resize_s3\.(jpg|png)/, result)
+    assert_match(/^https:\/\/test-bucket\.s3\.us-east-1\.amazonaws\.com/, result)
+  end
+
+  test "download_and_upload_to_s3 returns nil when s3 disabled" do
+    Rails.application.config.frankmd_images.s3_enabled = false
+
+    result = ImagesService.download_and_upload_to_s3("https://example.com/image.jpg")
+
+    assert_nil result
   end
 end

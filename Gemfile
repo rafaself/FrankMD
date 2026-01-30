@@ -56,6 +56,9 @@ group :test do
   # System testing
   gem "capybara"
   gem "selenium-webdriver"
+  # Mocking and stubbing
+  gem "mocha"
+  gem "webmock"
 end
 
 group :development do

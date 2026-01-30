@@ -258,4 +258,145 @@ class AiServiceTest < ActiveSupport::TestCase
     # Reference image doesn't exist, so it falls back to text-only which hits Imagen API
     assert result[:error].present?
   end
+
+  # === fix_grammar success path (mocked) ===
+
+  test "fix_grammar returns corrected text on success" do
+    ENV["OPENAI_API_KEY"] = "sk-test-key"
+
+    # Create mock response and chat objects using mocha
+    mock_response = stub(content: "This is corrected text.")
+    mock_chat = stub
+    mock_chat.stubs(:with_instructions).returns(mock_chat)
+    mock_chat.stubs(:ask).returns(mock_response)
+
+    RubyLLM.stubs(:chat).returns(mock_chat)
+
+    result = AiService.fix_grammar("This is uncorrected text")
+
+    assert_equal "This is corrected text.", result[:corrected]
+    assert_equal "openai", result[:provider]
+    assert_equal "gpt-4o-mini", result[:model]
+  end
+
+  test "fix_grammar returns error on API failure" do
+    ENV["OPENAI_API_KEY"] = "sk-test-key"
+
+    mock_chat = stub
+    mock_chat.stubs(:with_instructions).returns(mock_chat)
+    mock_chat.stubs(:ask).raises(StandardError.new("API connection failed"))
+
+    RubyLLM.stubs(:chat).returns(mock_chat)
+
+    result = AiService.fix_grammar("Some text")
+
+    assert result[:error].present?
+    assert_includes result[:error], "API connection failed"
+  end
+
+  test "fix_grammar works with anthropic provider" do
+    ENV["ANTHROPIC_API_KEY"] = "sk-ant-test"
+
+    mock_response = stub(content: "Fixed by Claude")
+    mock_chat = stub
+    mock_chat.stubs(:with_instructions).returns(mock_chat)
+    mock_chat.stubs(:ask).returns(mock_response)
+
+    RubyLLM.stubs(:chat).returns(mock_chat)
+
+    result = AiService.fix_grammar("Input text")
+
+    assert_equal "Fixed by Claude", result[:corrected]
+    assert_equal "anthropic", result[:provider]
+  end
+
+  # === Image generation response parsing ===
+
+  test "extract_image_from_imagen_response extracts base64 data" do
+    response = {
+      "predictions" => [
+        {
+          "bytesBase64Encoded" => "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+          "mimeType" => "image/png"
+        }
+      ]
+    }
+
+    result = AiService.extract_image_from_imagen_response(response, "imagen-4.0-generate-001")
+
+    assert result[:data].present?
+    assert_equal "image/png", result[:mime_type]
+    assert_equal "imagen-4.0-generate-001", result[:model]
+    assert_nil result[:error]
+  end
+
+  test "extract_image_from_imagen_response handles empty predictions" do
+    response = { "predictions" => [] }
+
+    result = AiService.extract_image_from_imagen_response(response, "model")
+
+    assert_equal "No predictions in response", result[:error]
+  end
+
+  test "extract_image_from_imagen_response handles missing image data" do
+    response = {
+      "predictions" => [
+        { "text" => "Some text response" }
+      ]
+    }
+
+    result = AiService.extract_image_from_imagen_response(response, "model")
+
+    assert_equal "No image data in response", result[:error]
+  end
+
+  test "extract_image_from_gemini_response extracts inline image" do
+    response = {
+      "candidates" => [
+        {
+          "content" => {
+            "parts" => [
+              {
+                "inlineData" => {
+                  "data" => "base64imagedata==",
+                  "mimeType" => "image/jpeg"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+
+    result = AiService.extract_image_from_gemini_response(response, "gemini-model")
+
+    assert_equal "base64imagedata==", result[:data]
+    assert_equal "image/jpeg", result[:mime_type]
+    assert_equal "gemini-model", result[:model]
+  end
+
+  test "extract_image_from_gemini_response handles empty candidates" do
+    response = { "candidates" => [] }
+
+    result = AiService.extract_image_from_gemini_response(response, "model")
+
+    assert_equal "No candidates in response", result[:error]
+  end
+
+  test "extract_image_from_gemini_response handles nil response" do
+    result = AiService.extract_image_from_gemini_response(nil, "model")
+
+    assert_equal "No response from Gemini", result[:error]
+  end
+
+  # === mime_type_for_path ===
+
+  test "mime_type_for_path returns correct types" do
+    assert_equal "image/jpeg", AiService.mime_type_for_path("/path/to/image.jpg")
+    assert_equal "image/jpeg", AiService.mime_type_for_path("/path/to/image.jpeg")
+    assert_equal "image/png", AiService.mime_type_for_path("/path/to/image.png")
+    assert_equal "image/gif", AiService.mime_type_for_path("/path/to/image.gif")
+    assert_equal "image/webp", AiService.mime_type_for_path("/path/to/image.webp")
+    assert_equal "image/jpeg", AiService.mime_type_for_path("/path/to/file.unknown")
+  end
 end

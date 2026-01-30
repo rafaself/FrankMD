@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { parseMarkdownTable, generateMarkdownTable } from "lib/table_utils"
 
 // Table Editor Controller
 // Manages the table editing dialog and generates markdown tables
@@ -39,7 +40,7 @@ export default class extends Controller {
       this.editMode = true
       this.startPos = startPos
       this.endPos = endPos
-      this.tableData = this.parseMarkdownTable(existingTable)
+      this.tableData = parseMarkdownTable(existingTable)
 
       if (this.tableData.length === 0) {
         this.tableData = [["Header 1", "Header 2", "Header 3"]]
@@ -61,72 +62,11 @@ export default class extends Controller {
     this.dialogTarget.close()
   }
 
-  // Parse markdown table into 2D array
-  parseMarkdownTable(lines) {
-    const rows = []
-    const lineArray = Array.isArray(lines) ? lines : lines.split("\n")
+  // Use imported utility functions
+  // parseMarkdownTable and generateMarkdownTable are now imported from lib/table_utils
 
-    for (const line of lineArray) {
-      const trimmed = line.trim()
-      if (!trimmed) continue
-
-      // Skip separator row (|---|---|)
-      if (/^\|[\s\-:]+\|$/.test(trimmed) || /^\|(\s*:?-+:?\s*\|)+$/.test(trimmed)) {
-        continue
-      }
-
-      // Split by | and remove empty first/last elements
-      const cells = trimmed.split("|")
-        .slice(1, -1)
-        .map(cell => cell.trim())
-
-      if (cells.length > 0) {
-        rows.push(cells)
-      }
-    }
-
-    return rows
-  }
-
-  // Generate markdown table from 2D array
-  generateMarkdownTable() {
-    if (!this.tableData || this.tableData.length === 0) return ""
-
-    const colCount = Math.max(...this.tableData.map(row => row.length))
-
-    // Normalize all rows to same column count
-    const normalizedData = this.tableData.map(row => {
-      const newRow = [...row]
-      while (newRow.length < colCount) {
-        newRow.push("")
-      }
-      return newRow
-    })
-
-    // Calculate column widths
-    const widths = []
-    for (let col = 0; col < colCount; col++) {
-      widths[col] = Math.max(3, ...normalizedData.map(row => (row[col] || "").length))
-    }
-
-    // Build table
-    const lines = []
-
-    // Header row
-    const headerCells = normalizedData[0].map((cell, i) => cell.padEnd(widths[i]))
-    lines.push("| " + headerCells.join(" | ") + " |")
-
-    // Separator row
-    const separatorCells = widths.map(w => "-".repeat(w))
-    lines.push("| " + separatorCells.join(" | ") + " |")
-
-    // Data rows
-    for (let i = 1; i < normalizedData.length; i++) {
-      const cells = normalizedData[i].map((cell, j) => cell.padEnd(widths[j]))
-      lines.push("| " + cells.join(" | ") + " |")
-    }
-
-    return lines.join("\n")
+  getMarkdownOutput() {
+    return generateMarkdownTable(this.tableData)
   }
 
   renderGrid() {
@@ -219,7 +159,7 @@ export default class extends Controller {
       return
     }
 
-    const markdown = this.generateMarkdownTable()
+    const markdown = this.getMarkdownOutput()
 
     // Dispatch event for app controller to handle insertion
     window.dispatchEvent(new CustomEvent("frankmd:insert-table", {
