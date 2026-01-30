@@ -1,0 +1,29 @@
+/* Cappuccino Theme - Warm coffee tones */
+[data-theme="cappuccino"] {
+  --theme-bg-primary: #1e1a17;
+  --theme-bg-secondary: #171411;
+  --theme-bg-tertiary: #2a2420;
+  --theme-bg-hover: #3d3530;
+  --theme-text-primary: #e8dfd6;
+  --theme-text-secondary: #c9beb3;
+  --theme-text-muted: #9a8b7d;
+  --theme-text-faint: #6b5f54;
+  --theme-border: #3d3530;
+  --theme-accent: #d4956a;
+  --theme-accent-hover: #e6ac82;
+  --theme-accent-text: #1e1a17;
+  --theme-selection: #4a3f36;
+  --theme-selection-text: #e8dfd6;
+  --theme-scrollbar: #4a3f36;
+  --theme-scrollbar-hover: #5d4f44;
+  --theme-success: #a3c585;
+  --theme-warning: #e6ac82;
+  --theme-error: #cf6d6d;
+  --theme-code-bg: #2a2420;
+  --theme-heading-1: #e6ac82;
+  --theme-heading-2: #d4956a;
+  --theme-heading-3: #a3c585;
+  --theme-folder-icon: #d4956a;
+  --theme-file-icon: #9a8b7d;
+  --theme-config-icon: #e6ac82;
+}

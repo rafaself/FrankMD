@@ -1,0 +1,39 @@
+/* Table editor styles */
+@layer components {
+  .table-editor-grid {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 400px;
+  }
+
+  .table-editor-grid td {
+    border: 1px solid #d4d4d8;
+    padding: 0;
+    min-width: 100px;
+  }
+
+  .dark .table-editor-grid td {
+    border-color: #52525b;
+  }
+
+  .table-editor-grid tr:first-child td {
+    background: #f4f4f5;
+  }
+
+  .dark .table-editor-grid tr:first-child td {
+    background: #3f3f46;
+  }
+
+  .table-editor-grid input {
+    width: 100%;
+    min-width: 80px;
+  }
+
+  .table-editor-grid input:focus {
+    background: #eff6ff;
+  }
+
+  .dark .table-editor-grid input:focus {
+    background: #1e3a5f;
+  }
+}

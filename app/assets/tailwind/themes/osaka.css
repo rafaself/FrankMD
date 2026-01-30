@@ -1,0 +1,29 @@
+/* Osaka Theme - Japanese aesthetic, cherry blossom inspired */
+[data-theme="osaka"] {
+  --theme-bg-primary: #1c1a1f;
+  --theme-bg-secondary: #16141a;
+  --theme-bg-tertiary: #262330;
+  --theme-bg-hover: #352f42;
+  --theme-text-primary: #e8e0f0;
+  --theme-text-secondary: #c9bed9;
+  --theme-text-muted: #9088a0;
+  --theme-text-faint: #5d5670;
+  --theme-border: #352f42;
+  --theme-accent: #e8a4c9;
+  --theme-accent-hover: #f0b8d4;
+  --theme-accent-text: #1c1a1f;
+  --theme-selection: #42384f;
+  --theme-selection-text: #f0b8d4;
+  --theme-scrollbar: #42384f;
+  --theme-scrollbar-hover: #524763;
+  --theme-success: #a4d4a2;
+  --theme-warning: #e8c899;
+  --theme-error: #e87a7a;
+  --theme-code-bg: #262330;
+  --theme-heading-1: #e8a4c9;
+  --theme-heading-2: #a4c8e8;
+  --theme-heading-3: #a4d4a2;
+  --theme-folder-icon: #e8a4c9;
+  --theme-file-icon: #9088a0;
+  --theme-config-icon: #e8c899;
+}

@@ -1,0 +1,29 @@
+/* AI Diff styles */
+@layer components {
+  .ai-diff-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Deleted text - shown in original column */
+  .ai-diff-del {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--theme-error);
+    text-decoration: line-through;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* Added text - shown in corrected column */
+  .ai-diff-add {
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--theme-success);
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* Unchanged text */
+  .ai-diff-equal {
+    /* No special styling */
+  }
+}
