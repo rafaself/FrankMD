@@ -113,7 +113,9 @@ fed() {
   docker stop frankmd 2>/dev/null
   docker rm frankmd 2>/dev/null
 
-  local args=(-d -p 3000:80 -v "$(realpath "${1:-.}"):/rails/notes")
+  local uid="${FRANKMD_UID:-$(id -u)}"
+  local gid="${FRANKMD_GID:-$(id -g)}"
+  local args=(-d -p 3000:80 --user "${uid}:${gid}" -v "$(realpath "${1:-.}"):/rails/notes")
 
   [[ -n "$FRANKMD_LOCALE" ]] && args+=(-e "FRANKMD_LOCALE=$FRANKMD_LOCALE")
   [[ -n "$IMAGES_PATH" ]] && args+=(-v "$(realpath "$IMAGES_PATH"):/rails/images" -e IMAGES_PATH=/rails/images)
