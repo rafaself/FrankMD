@@ -4,6 +4,12 @@
 #
 # Build:  docker build -t frankmd .
 # Run:    docker run -p 3000:80 -v ~/notes:/rails/notes frankmd
+#
+# Build with custom UID/GID (to match host user):
+#   docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t frankmd .
+#
+# Or use docker-compose with user override (no rebuild needed):
+#   UID=$(id -u) GID=$(id -g) docker compose up -d
 
 ARG RUBY_VERSION=3.4.1
 FROM ruby:$RUBY_VERSION-slim AS base
@@ -53,13 +59,17 @@ RUN bundle exec bootsnap precompile app/ lib/ && \
 # Final stage
 FROM base
 
-# Create non-root user
-RUN groupadd --system --gid 1000 rails && \
-    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
+# Allow UID/GID to be overridden at build time
+ARG UID=1000
+ARG GID=1000
+
+# Create non-root user with configurable UID/GID
+RUN groupadd --system --gid ${GID} rails && \
+    useradd rails --uid ${UID} --gid ${GID} --create-home --shell /bin/bash && \
     mkdir -p /rails/notes /rails/images && \
     chown -R rails:rails /rails
 
-USER rails:rails
+USER ${UID}:${GID}
 
 # Copy built app
 COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"

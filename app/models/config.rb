@@ -206,6 +206,7 @@ class Config
 
   def initialize(base_path: nil)
     @base_path = Pathname.new(base_path || ENV.fetch("NOTES_PATH", Rails.root.join("notes")))
+    Rails.logger.debug("[Config] Initializing with base_path: #{@base_path}")
     @values = {}
     load_config
   end
@@ -370,7 +371,7 @@ class Config
     if config_file_path.exist?
       upgrade_config_file
     else
-      Rails.logger.info("Config file not found at #{config_file_path}, creating template...")
+      Rails.logger.warn("[Config] .fed not found at #{config_file_path}, creating template...")
       create_template_config
     end
   end
@@ -518,19 +519,20 @@ class Config
 
     # Ensure parent directory exists
     unless target_dir.exist?
-      Rails.logger.info("Creating notes directory: #{target_dir}")
+      Rails.logger.warn("[Config] Creating notes directory: #{target_dir}")
       target_dir.mkpath
     end
 
     lines = generate_template_lines
-    Rails.logger.info("Creating .fed config at: #{target_path}")
+    Rails.logger.warn("[Config] Writing .fed config to: #{target_path}")
     target_path.write(lines.join("\n") + "\n")
+    Rails.logger.warn("[Config] Successfully created .fed config")
   rescue Errno::EACCES => e
-    Rails.logger.error("Permission denied creating .fed config at #{config_file_path}: #{e.message}")
+    Rails.logger.error("[Config] Permission denied creating .fed at #{config_file_path}: #{e.message}")
   rescue Errno::EROFS => e
-    Rails.logger.error("Read-only filesystem, cannot create .fed config at #{config_file_path}: #{e.message}")
+    Rails.logger.error("[Config] Read-only filesystem, cannot create .fed at #{config_file_path}: #{e.message}")
   rescue => e
-    Rails.logger.error("Failed to create .fed template at #{config_file_path}: #{e.class} - #{e.message}")
+    Rails.logger.error("[Config] Failed to create .fed at #{config_file_path}: #{e.class} - #{e.message}")
     Rails.logger.error(e.backtrace.first(5).join("\n"))
   end
 
