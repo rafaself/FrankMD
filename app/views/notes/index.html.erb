@@ -2,7 +2,7 @@
      data-controller="app"
      data-app-tree-value="<%= @tree.to_json %>"
      data-app-initial-path-value="<%= @initial_path.to_json %>"
-     data-app-initial-note-value="<%= @initial_note.to_json %>"
+     data-app-initial-note-value="<%= (@initial_note || {}).to_json %>"
      data-app-config-value="<%= @config.to_json %>">
 
   <%= render "notes/header" %>

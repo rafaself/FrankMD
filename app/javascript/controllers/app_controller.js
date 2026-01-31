@@ -227,8 +227,9 @@ export default class extends Controller {
 
   handleInitialFile() {
     // Check if server provided initial note data (from URL like /notes/path/to/file.md)
-    if (this.hasInitialNoteValue && this.initialNoteValue) {
-      const { path, content, exists, error } = this.initialNoteValue
+    const initialNote = this.hasInitialNoteValue ? this.initialNoteValue : null
+    if (initialNote && Object.keys(initialNote).length > 0) {
+      const { path, content, exists, error } = initialNote
 
       if (exists && content !== null) {
         // File exists - load it directly from server-provided data
