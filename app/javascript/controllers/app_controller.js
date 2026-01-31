@@ -2174,18 +2174,20 @@ export default class extends Controller {
         this.saveNow()
       }
 
-      // Ctrl/Cmd + Shift + P: Toggle preview
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "P") {
+      // Ctrl/Cmd + Shift + V: Toggle preview (VSCode-style)
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "V") {
         event.preventDefault()
         this.togglePreview()
       }
 
+      // Ctrl/Cmd + F: Find in file
       if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "f") {
         event.preventDefault()
         this.openFindReplace()
       }
 
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "H") {
+      // Ctrl/Cmd + H: Find and Replace (VSCode-style)
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "h") {
         event.preventDefault()
         this.openFindReplace({ tab: "replace" })
       }
@@ -2213,13 +2215,25 @@ export default class extends Controller {
       }
 
       // Ctrl/Cmd + E: Toggle explorer/sidebar
-      if ((event.ctrlKey || event.metaKey) && event.key === "e") {
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "e") {
         event.preventDefault()
         this.toggleSidebar()
       }
 
-      // Ctrl/Cmd + B: Toggle typewriter mode
-      if ((event.ctrlKey || event.metaKey) && event.key === "b") {
+      // Ctrl/Cmd + B: Bold (VSCode-style)
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "b") {
+        event.preventDefault()
+        this.applyInlineFormat("bold")
+      }
+
+      // Ctrl/Cmd + I: Italic (VSCode-style)
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "i") {
+        event.preventDefault()
+        this.applyInlineFormat("italic")
+      }
+
+      // Ctrl/Cmd + \: Toggle typewriter mode
+      if ((event.ctrlKey || event.metaKey) && event.key === "\\") {
         event.preventDefault()
         this.toggleTypewriterMode()
       }
@@ -2238,8 +2252,8 @@ export default class extends Controller {
         }
       }
 
-      // F1 or Ctrl+H: Open help
-      if (event.key === "F1" || ((event.ctrlKey || event.metaKey) && event.key === "h")) {
+      // F1: Open help
+      if (event.key === "F1") {
         event.preventDefault()
         this.openHelp()
       }
@@ -2530,6 +2544,44 @@ export default class extends Controller {
     if (this.hasTextareaTarget) {
       this.textareaTarget.focus()
     }
+  }
+
+  // Apply inline formatting directly (for keyboard shortcuts like Ctrl+B, Ctrl+I)
+  applyInlineFormat(formatId) {
+    if (!this.hasTextareaTarget) return
+
+    const textFormatController = this.getTextFormatController()
+    if (!textFormatController) return
+
+    const format = textFormatController.getFormat(formatId)
+    if (!format) return
+
+    const textarea = this.textareaTarget
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = textarea.value.substring(start, end)
+
+    // If no selection, just insert the format markers and place cursor between them
+    if (start === end) {
+      const { prefix, suffix } = format
+      const before = textarea.value.substring(0, start)
+      const after = textarea.value.substring(end)
+      textarea.value = before + prefix + suffix + after
+      // Position cursor between prefix and suffix
+      const cursorPos = start + prefix.length
+      textarea.setSelectionRange(cursorPos, cursorPos)
+    } else {
+      // Apply formatting to selected text
+      const selectionData = { start, end, text }
+      this.onTextFormatApplied({
+        detail: { prefix: format.prefix, suffix: format.suffix, selectionData }
+      })
+      return // onTextFormatApplied handles focus and save
+    }
+
+    textarea.focus()
+    this.scheduleAutoSave()
+    this.updatePreview()
   }
 
   // Emoji Picker

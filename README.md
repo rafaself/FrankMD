@@ -511,20 +511,44 @@ This is useful for:
 
 ## Keyboard Shortcuts
 
+### File Operations
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl+N` | New note |
 | `Ctrl+S` | Save now |
 | `Ctrl+P` | Find file by path |
 | `Ctrl+Shift+F` | Search in file contents |
+| `Ctrl+F` | Find in file |
+| `Ctrl+H` | Find and replace |
+| `Ctrl+G` | Go to line |
+
+### Editor
+| Shortcut | Action |
+|----------|--------|
 | `Ctrl+E` | Toggle sidebar |
-| `Ctrl+B` | Toggle typewriter mode |
-| `Ctrl+Shift+P` | Toggle preview panel |
-| `F1` | Markdown help |
+| `Ctrl+Shift+V` | Toggle preview panel |
+| `Ctrl+\` | Toggle typewriter mode |
+| `Ctrl+L` | Toggle line numbers |
+| `Tab` | Indent line/block |
+| `Shift+Tab` | Unindent block |
+
+### Text Formatting
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+B` | Bold |
+| `Ctrl+I` | Italic |
+| `Ctrl+M` | Open text format menu |
+| `Ctrl+Shift+E` | Emoji picker |
+
+### Help
+| Shortcut | Action |
+|----------|--------|
+| `F1` | Open help dialog |
+| `Escape` | Close dialogs |
 
 ## Typewriter Mode
 
-Typewriter mode (`Ctrl+B`) is designed for focused, distraction-free writing:
+Typewriter mode (`Ctrl+\`) is designed for focused, distraction-free writing:
 
 **Normal mode (default):**
 - Explorer panel visible on the left
