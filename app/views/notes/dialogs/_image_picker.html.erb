@@ -2,7 +2,7 @@
 <dialog
   class="p-0 rounded-lg shadow-xl backdrop:bg-black/50 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] w-[700px] max-w-[90vw] max-h-[90vh] overflow-hidden"
   data-controller="image-picker"
-  data-image-picker-target="imageDialog"
+  data-image-picker-target="dialog"
   data-action="image-picker:image-selected->app#onImageSelected"
 >
   <div class="text-[var(--theme-text-primary)] flex flex-col h-full max-h-[90vh]">
@@ -11,7 +11,7 @@
       <h3 class="text-sm font-semibold">Insert Image</h3>
       <button
         type="button"
-        data-action="click->image-picker#closeImageDialog"
+        data-action="click->image-picker#closeDialog"
         class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,54 +24,54 @@
     <div class="flex-shrink-0 flex border-b border-[var(--theme-border)] px-4 mt-2">
       <button
         type="button"
-        data-action="click->image-picker#switchImageTab"
+        data-action="click->image-picker#switchTab"
         data-tab="local"
-        data-image-picker-target="imageTabLocal"
+        data-image-picker-target="tabLocal"
         class="px-4 py-2 text-sm font-medium border-b-2 border-[var(--theme-accent)] text-[var(--theme-accent)]"
       >
         Local
       </button>
       <button
         type="button"
-        data-action="click->image-picker#switchImageTab"
+        data-action="click->image-picker#switchTab"
         data-tab="folder"
-        data-image-picker-target="imageTabFolder"
+        data-image-picker-target="tabFolder"
         class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)]"
       >
         Folder
       </button>
       <button
         type="button"
-        data-action="click->image-picker#switchImageTab"
+        data-action="click->image-picker#switchTab"
         data-tab="web"
-        data-image-picker-target="imageTabWeb"
+        data-image-picker-target="tabWeb"
         class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)]"
       >
         Web Search
       </button>
       <button
         type="button"
-        data-action="click->image-picker#switchImageTab"
+        data-action="click->image-picker#switchTab"
         data-tab="google"
-        data-image-picker-target="imageTabGoogle"
+        data-image-picker-target="tabGoogle"
         class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)]"
       >
         Google
       </button>
       <button
         type="button"
-        data-action="click->image-picker#switchImageTab"
+        data-action="click->image-picker#switchTab"
         data-tab="pinterest"
-        data-image-picker-target="imageTabPinterest"
+        data-image-picker-target="tabPinterest"
         class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)]"
       >
         Pinterest
       </button>
       <button
         type="button"
-        data-action="click->image-picker#switchImageTab"
+        data-action="click->image-picker#switchTab"
         data-tab="ai"
-        data-image-picker-target="imageTabAi"
+        data-image-picker-target="tabAi"
         class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)]"
       >
         AI Generate
@@ -80,10 +80,16 @@
 
     <!-- Scrollable Content Area -->
     <div class="flex-1 min-h-0 overflow-y-auto">
+
     <!-- Tab Content: Local Images (server-side images_path) -->
-    <div class="p-4" data-image-picker-target="imageLocalPanel">
+    <div
+      class="p-4"
+      data-image-picker-target="panelLocal"
+      data-controller="local-images"
+      data-action="local-images:selected->image-picker#onSourceSelected"
+    >
       <!-- Configuration Required Notice -->
-      <div class="hidden" data-image-picker-target="localImagesConfigNotice">
+      <div class="hidden" data-local-images-target="configNotice">
         <div class="p-4 bg-[var(--theme-bg-tertiary)] rounded-lg text-center">
           <svg class="w-10 h-10 mx-auto mb-3 text-[var(--theme-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -103,28 +109,65 @@
       </div>
 
       <!-- Search Form (shown when configured) -->
-      <div data-image-picker-target="localImagesForm">
+      <div data-local-images-target="form">
         <div class="mb-3">
           <input
             type="text"
-            data-image-picker-target="imageSearch"
-            data-action="input->image-picker#onImageSearch"
+            data-local-images-target="search"
+            data-action="input->local-images#onSearch"
             class="w-full px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
             placeholder="Search images by filename..."
           >
         </div>
 
         <!-- Image Grid -->
-        <div class="grid grid-cols-5 gap-2 mb-4 min-h-[200px] max-h-[300px] overflow-y-auto" data-image-picker-target="imageGrid">
+        <div class="grid grid-cols-5 gap-2 mb-4 min-h-[200px] max-h-[300px] overflow-y-auto" data-local-images-target="grid">
           <!-- Images will be rendered by JavaScript -->
+        </div>
+      </div>
+
+      <!-- S3 Upload Option (for local server images) -->
+      <div class="hidden" data-local-images-target="s3Option">
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            data-local-images-target="uploadToS3"
+            data-action="change->local-images#onS3CheckboxChange"
+            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
+          >
+          <span>Upload to AWS S3 first</span>
+        </label>
+        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
+          Image will be uploaded to S3 and the URL will be used instead of local path
+        </p>
+        <!-- Resize option (only when S3 is checked) -->
+        <div class="hidden mt-2 ml-6" data-local-images-target="resizeOption">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Resize:</span>
+            <select
+              data-local-images-target="resizeSelect"
+              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+            >
+              <option value="">None (original size)</option>
+              <option value="0.25">1/4 size (25%)</option>
+              <option value="0.5" selected>1/2 size (50%)</option>
+              <option value="0.67">2/3 size (67%)</option>
+            </select>
+            <span class="text-[var(--theme-text-muted)]">+ compress</span>
+          </label>
         </div>
       </div>
     </div>
 
     <!-- Tab Content: Folder (browser folder picker) -->
-    <div class="p-4 hidden" data-image-picker-target="imageFolderPanel">
+    <div
+      class="p-4 hidden"
+      data-image-picker-target="panelFolder"
+      data-controller="folder-images"
+      data-action="folder-images:selected->image-picker#onSourceSelected"
+    >
       <!-- API Not Supported Notice -->
-      <div class="hidden" data-image-picker-target="folderApiNotice">
+      <div class="hidden" data-folder-images-target="apiNotice">
         <div class="p-4 bg-[var(--theme-bg-tertiary)] rounded-lg text-center">
           <svg class="w-10 h-10 mx-auto mb-3 text-[var(--theme-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -149,7 +192,7 @@
       </div>
 
       <!-- Browse folder prompt (shown when API available) -->
-      <div class="hidden" data-image-picker-target="browsePrompt">
+      <div class="hidden" data-folder-images-target="browsePrompt">
         <div class="flex flex-col items-center justify-center py-6">
           <svg class="w-10 h-10 mb-3 text-[var(--theme-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -159,7 +202,7 @@
           </p>
           <button
             type="button"
-            data-action="click->image-picker#browseLocalFolder"
+            data-action="click->folder-images#browse"
             class="px-4 py-2 bg-[var(--theme-accent)] text-[var(--theme-accent-text)] rounded-md hover:bg-[var(--theme-accent-hover)] text-sm font-medium"
           >
             Browse Folder...
@@ -168,12 +211,12 @@
       </div>
 
       <!-- Grid for folder images (shown after folder selected) -->
-      <div class="hidden" data-image-picker-target="localFolderContainer">
+      <div class="hidden" data-folder-images-target="container">
         <div class="flex items-center justify-between mb-3">
-          <span class="text-xs text-[var(--theme-text-muted)]" data-image-picker-target="localFolderStatus">No folder selected</span>
+          <span class="text-xs text-[var(--theme-text-muted)]" data-folder-images-target="status">No folder selected</span>
           <button
             type="button"
-            data-action="click->image-picker#browseLocalFolder"
+            data-action="click->folder-images#browse"
             class="text-xs text-[var(--theme-accent)] hover:underline"
           >
             Change folder...
@@ -183,34 +226,70 @@
         <div class="mb-3">
           <input
             type="text"
-            data-image-picker-target="folderImageSearch"
-            data-action="input->image-picker#onFolderImageSearch"
+            data-folder-images-target="search"
+            data-action="input->folder-images#onSearch"
             class="w-full px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
             placeholder="Search images by filename..."
           >
         </div>
-        <div class="grid grid-cols-5 gap-2 mb-4 min-h-[200px] max-h-[300px] overflow-y-auto" data-image-picker-target="localFolderGrid">
+        <div class="grid grid-cols-5 gap-2 mb-4 min-h-[200px] max-h-[300px] overflow-y-auto" data-folder-images-target="grid">
           <!-- Images will be rendered by JavaScript -->
+        </div>
+      </div>
+
+      <!-- S3 Upload Option (for local folder images) -->
+      <div class="hidden" data-folder-images-target="s3Option">
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            data-folder-images-target="uploadToS3"
+            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
+          >
+          <span>Upload to AWS S3</span>
+        </label>
+        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
+          Image will be uploaded to S3 (cloud URL). Otherwise saves to notes/images/ directory.
+        </p>
+        <!-- Resize option (always shown for folder uploads) -->
+        <div class="mt-2 ml-6" data-folder-images-target="resizeOption">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Resize:</span>
+            <select
+              data-folder-images-target="resizeSelect"
+              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+            >
+              <option value="">None (original size)</option>
+              <option value="0.25">1/4 size (25%)</option>
+              <option value="0.5" selected>1/2 size (50%)</option>
+              <option value="0.67">2/3 size (67%)</option>
+            </select>
+            <span class="text-[var(--theme-text-muted)]">+ compress</span>
+          </label>
         </div>
       </div>
     </div>
 
     <!-- Tab Content: Web Search (Bing/DuckDuckGo) -->
-    <div class="p-4 hidden" data-image-picker-target="imageWebPanel">
+    <div
+      class="p-4 hidden"
+      data-image-picker-target="panelWeb"
+      data-controller="web-images"
+      data-action="web-images:selected->image-picker#onSourceSelected"
+    >
       <!-- Search -->
       <div class="mb-3">
         <div class="flex gap-2">
           <input
             type="text"
-            data-image-picker-target="webImageSearch"
-            data-action="keydown->image-picker#onWebImageSearchKeydown"
+            data-web-images-target="search"
+            data-action="keydown->web-images#onSearchKeydown"
             class="flex-1 px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
             placeholder="Search web images..."
           >
           <button
             type="button"
-            data-action="click->image-picker#searchWebImages"
-            data-image-picker-target="webSearchBtn"
+            data-action="click->web-images#search"
+            data-web-images-target="searchBtn"
             class="px-4 py-2 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)] flex items-center gap-1"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,20 +301,57 @@
       </div>
 
       <!-- Status -->
-      <div class="mb-2 text-xs text-[var(--theme-text-muted)]" data-image-picker-target="webImageStatus">
+      <div class="mb-2 text-xs text-[var(--theme-text-muted)]" data-web-images-target="status">
         Enter keywords and click Search or press Enter
       </div>
 
       <!-- Image Grid -->
-      <div class="grid grid-cols-4 gap-2 mb-4 min-h-[200px] max-h-[350px] overflow-y-auto" data-image-picker-target="webImageGrid">
+      <div class="grid grid-cols-4 gap-2 mb-4 min-h-[200px] max-h-[350px] overflow-y-auto" data-web-images-target="grid">
         <!-- Images will be rendered by JavaScript -->
+      </div>
+
+      <!-- S3 Re-upload Option (for external images) -->
+      <div class="hidden" data-web-images-target="s3Option">
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            data-web-images-target="reuploadToS3"
+            data-action="change->web-images#onS3CheckboxChange"
+            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
+          >
+          <span>Download and re-upload to AWS S3</span>
+        </label>
+        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
+          Image will be downloaded and uploaded to your S3, using your URL instead of the original
+        </p>
+        <!-- Resize option (only when S3 is checked) -->
+        <div class="hidden mt-2 ml-6" data-web-images-target="resizeOption">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Resize:</span>
+            <select
+              data-web-images-target="resizeSelect"
+              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+            >
+              <option value="">None (original size)</option>
+              <option value="0.25">1/4 size (25%)</option>
+              <option value="0.5" selected>1/2 size (50%)</option>
+              <option value="0.67">2/3 size (67%)</option>
+            </select>
+            <span class="text-[var(--theme-text-muted)]">+ compress</span>
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Tab Content: Google Images (requires API key) -->
-    <div class="p-4 hidden" data-image-picker-target="imageGooglePanel">
+    <div
+      class="p-4 hidden"
+      data-image-picker-target="panelGoogle"
+      data-controller="google-images"
+      data-action="google-images:selected->image-picker#onSourceSelected"
+    >
       <!-- Configuration Required Notice -->
-      <div class="hidden" data-image-picker-target="googleImagesConfigNotice">
+      <div class="hidden" data-google-images-target="configNotice">
         <div class="p-4 bg-[var(--theme-bg-tertiary)] rounded-lg text-center">
           <svg class="w-10 h-10 mx-auto mb-3 text-[var(--theme-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -267,21 +383,21 @@
       </div>
 
       <!-- Search Form (shown when configured) -->
-      <div data-image-picker-target="googleImagesForm">
+      <div data-google-images-target="form">
         <!-- Search -->
         <div class="mb-3">
           <div class="flex gap-2">
             <input
               type="text"
-              data-image-picker-target="googleImageSearch"
-              data-action="keydown->image-picker#onGoogleImageSearchKeydown"
+              data-google-images-target="search"
+              data-action="keydown->google-images#onSearchKeydown"
               class="flex-1 px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
               placeholder="Search Google Images..."
             >
             <button
               type="button"
-              data-action="click->image-picker#searchGoogleImages"
-              data-image-picker-target="googleSearchBtn"
+              data-action="click->google-images#search"
+              data-google-images-target="searchBtn"
               class="px-4 py-2 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)] flex items-center gap-1"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,37 +409,74 @@
         </div>
 
         <!-- Status -->
-        <div class="mb-2 text-xs text-[var(--theme-text-muted)]" data-image-picker-target="googleImageStatus">
+        <div class="mb-2 text-xs text-[var(--theme-text-muted)]" data-google-images-target="status">
           Enter keywords and click Search or press Enter
         </div>
 
         <!-- Image Grid with infinite scroll -->
         <div
           class="grid grid-cols-4 gap-2 mb-4 min-h-[200px] max-h-[350px] overflow-y-auto"
-          data-image-picker-target="googleImageGrid"
-          data-action="scroll->image-picker#onGoogleImageScroll"
+          data-google-images-target="grid"
+          data-action="scroll->google-images#onScroll"
         >
           <!-- Images will be rendered by JavaScript -->
+        </div>
+      </div>
+
+      <!-- S3 Re-upload Option (for external images) -->
+      <div class="hidden" data-google-images-target="s3Option">
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            data-google-images-target="reuploadToS3"
+            data-action="change->google-images#onS3CheckboxChange"
+            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
+          >
+          <span>Download and re-upload to AWS S3</span>
+        </label>
+        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
+          Image will be downloaded and uploaded to your S3, using your URL instead of the original
+        </p>
+        <!-- Resize option (only when S3 is checked) -->
+        <div class="hidden mt-2 ml-6" data-google-images-target="resizeOption">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Resize:</span>
+            <select
+              data-google-images-target="resizeSelect"
+              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+            >
+              <option value="">None (original size)</option>
+              <option value="0.25">1/4 size (25%)</option>
+              <option value="0.5" selected>1/2 size (50%)</option>
+              <option value="0.67">2/3 size (67%)</option>
+            </select>
+            <span class="text-[var(--theme-text-muted)]">+ compress</span>
+          </label>
         </div>
       </div>
     </div>
 
     <!-- Tab Content: Pinterest -->
-    <div class="p-4 hidden" data-image-picker-target="imagePinterestPanel">
+    <div
+      class="p-4 hidden"
+      data-image-picker-target="panelPinterest"
+      data-controller="pinterest-images"
+      data-action="pinterest-images:selected->image-picker#onSourceSelected"
+    >
       <!-- Search -->
       <div class="mb-3">
         <div class="flex gap-2">
           <input
             type="text"
-            data-image-picker-target="pinterestImageSearch"
-            data-action="keydown->image-picker#onPinterestImageSearchKeydown"
+            data-pinterest-images-target="search"
+            data-action="keydown->pinterest-images#onSearchKeydown"
             class="flex-1 px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
             placeholder="Search Pinterest..."
           >
           <button
             type="button"
-            data-action="click->image-picker#searchPinterestImages"
-            data-image-picker-target="pinterestSearchBtn"
+            data-action="click->pinterest-images#search"
+            data-pinterest-images-target="searchBtn"
             class="px-4 py-2 text-sm rounded-md bg-[var(--theme-error)] text-white hover:opacity-90 flex items-center gap-1"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -335,20 +488,57 @@
       </div>
 
       <!-- Status -->
-      <div class="mb-2 text-xs text-[var(--theme-text-muted)]" data-image-picker-target="pinterestImageStatus">
+      <div class="mb-2 text-xs text-[var(--theme-text-muted)]" data-pinterest-images-target="status">
         Enter keywords and click Search or press Enter
       </div>
 
       <!-- Image Grid -->
-      <div class="grid grid-cols-4 gap-2 mb-4 min-h-[200px] max-h-[350px] overflow-y-auto" data-image-picker-target="pinterestImageGrid">
+      <div class="grid grid-cols-4 gap-2 mb-4 min-h-[200px] max-h-[350px] overflow-y-auto" data-pinterest-images-target="grid">
         <!-- Images will be rendered by JavaScript -->
+      </div>
+
+      <!-- S3 Re-upload Option (for external images) -->
+      <div class="hidden" data-pinterest-images-target="s3Option">
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            data-pinterest-images-target="reuploadToS3"
+            data-action="change->pinterest-images#onS3CheckboxChange"
+            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
+          >
+          <span>Download and re-upload to AWS S3</span>
+        </label>
+        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
+          Image will be downloaded and uploaded to your S3, using your URL instead of the original
+        </p>
+        <!-- Resize option (only when S3 is checked) -->
+        <div class="hidden mt-2 ml-6" data-pinterest-images-target="resizeOption">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Resize:</span>
+            <select
+              data-pinterest-images-target="resizeSelect"
+              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+            >
+              <option value="">None (original size)</option>
+              <option value="0.25">1/4 size (25%)</option>
+              <option value="0.5" selected>1/2 size (50%)</option>
+              <option value="0.67">2/3 size (67%)</option>
+            </select>
+            <span class="text-[var(--theme-text-muted)]">+ compress</span>
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Tab Content: AI Image Generation -->
-    <div class="p-4 hidden" data-image-picker-target="imageAiPanel">
+    <div
+      class="p-4 hidden"
+      data-image-picker-target="panelAi"
+      data-controller="ai-images"
+      data-action="ai-images:selected->image-picker#onSourceSelected"
+    >
       <!-- Configuration Required Notice -->
-      <div class="hidden" data-image-picker-target="aiImageConfigNotice">
+      <div class="hidden" data-ai-images-target="configNotice">
         <div class="p-4 bg-[var(--theme-bg-tertiary)] rounded-lg text-center">
           <svg class="w-10 h-10 mx-auto mb-3 text-[var(--theme-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -369,27 +559,27 @@
       </div>
 
       <!-- AI Generation Form (shown when configured) -->
-      <div data-image-picker-target="aiImageForm" class="hidden">
+      <div data-ai-images-target="form" class="hidden">
         <!-- Model Display -->
         <div class="mb-3 text-xs text-[var(--theme-text-muted)]">
-          Model: <span data-image-picker-target="aiImageModel" class="font-medium text-[var(--theme-text-secondary)]"></span>
+          Model: <span data-ai-images-target="model" class="font-medium text-[var(--theme-text-secondary)]"></span>
         </div>
 
         <!-- Reference Image Section (optional) -->
-        <div class="mb-3" data-image-picker-target="aiRefImageSection">
+        <div class="mb-3 hidden" data-ai-images-target="refSection">
           <label class="block text-xs text-[var(--theme-text-muted)] mb-1">
             Reference image (optional) - guide the generation with an existing image
           </label>
 
           <!-- Selected Reference Preview -->
-          <div class="hidden mb-2 p-2 bg-[var(--theme-bg-tertiary)] rounded-lg" data-image-picker-target="aiRefImagePreviewContainer">
+          <div class="hidden mb-2 p-2 bg-[var(--theme-bg-tertiary)] rounded-lg" data-ai-images-target="refPreviewContainer">
             <div class="flex items-center gap-3">
-              <img data-image-picker-target="aiRefImagePreview" class="w-16 h-16 object-cover rounded" alt="Reference" />
+              <img data-ai-images-target="refPreview" class="w-16 h-16 object-cover rounded" alt="Reference" />
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate" data-image-picker-target="aiRefImageName"></p>
+                <p class="text-sm font-medium truncate" data-ai-images-target="refName"></p>
                 <button
                   type="button"
-                  data-action="click->image-picker#clearAiRefImage"
+                  data-action="click->ai-images#clearRefImage"
                   class="text-xs text-[var(--theme-error)] hover:underline"
                 >
                   Remove reference
@@ -399,15 +589,15 @@
           </div>
 
           <!-- Reference Image Search & Grid -->
-          <div data-image-picker-target="aiRefImagePicker">
+          <div data-ai-images-target="refPicker">
             <input
               type="text"
-              data-image-picker-target="aiRefImageSearch"
-              data-action="input->image-picker#onAiRefImageSearch"
+              data-ai-images-target="refSearch"
+              data-action="input->ai-images#onRefSearch"
               class="w-full px-3 py-1.5 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] mb-2"
               placeholder="Search reference images..."
             >
-            <div class="grid grid-cols-6 gap-1.5 max-h-[120px] overflow-y-auto" data-image-picker-target="aiRefImageGrid">
+            <div class="grid grid-cols-6 gap-1.5 max-h-[120px] overflow-y-auto" data-ai-images-target="refGrid">
               <!-- Reference images will be rendered by JavaScript -->
             </div>
           </div>
@@ -417,8 +607,8 @@
         <div class="mb-3">
           <label class="block text-xs text-[var(--theme-text-muted)] mb-1">Describe the image you want to generate</label>
           <textarea
-            data-image-picker-target="aiImagePrompt"
-            data-action="keydown->image-picker#onAiImagePromptKeydown"
+            data-ai-images-target="prompt"
+            data-action="keydown->ai-images#onPromptKeydown"
             class="w-full px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] resize-none"
             rows="2"
             placeholder="A photorealistic image of a mountain landscape at sunset with dramatic clouds..."
@@ -429,8 +619,8 @@
         <div class="mb-4">
           <button
             type="button"
-            data-action="click->image-picker#generateAiImage"
-            data-image-picker-target="aiImageGenerateBtn"
+            data-action="click->ai-images#generate"
+            data-ai-images-target="generateBtn"
             class="px-4 py-2 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)] flex items-center gap-2"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -441,38 +631,38 @@
         </div>
 
         <!-- Processing Overlay -->
-        <div class="hidden" data-image-picker-target="aiImageProcessing">
+        <div class="hidden" data-ai-images-target="processing">
           <div class="p-8 bg-[var(--theme-bg-tertiary)] rounded-lg text-center">
             <svg class="animate-spin w-8 h-8 mx-auto mb-3 text-[var(--theme-accent)]" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p class="text-sm text-[var(--theme-text-secondary)] mb-1">Generating image with <span data-image-picker-target="aiImageProcessingModel" class="font-medium text-[var(--theme-accent)]"></span></p>
+            <p class="text-sm text-[var(--theme-text-secondary)] mb-1">Generating image with <span data-ai-images-target="processingModel" class="font-medium text-[var(--theme-accent)]"></span></p>
             <p class="text-xs text-[var(--theme-text-muted)]">Press <kbd class="px-1.5 py-0.5 rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] font-mono">ESC</kbd> to cancel</p>
           </div>
         </div>
 
         <!-- Generated Image Preview -->
-        <div class="hidden" data-image-picker-target="aiImageResult">
+        <div class="hidden" data-ai-images-target="result">
           <div class="flex gap-4">
             <!-- Image Preview (left side) -->
             <div class="flex-shrink-0">
               <label class="block text-xs text-[var(--theme-text-muted)] mb-1">Generated Image</label>
               <div class="border border-[var(--theme-border)] rounded-lg overflow-hidden bg-[var(--theme-bg-tertiary)]">
-                <img data-image-picker-target="aiImagePreview" class="max-w-[200px] max-h-[150px] object-contain" alt="Generated image" />
+                <img data-ai-images-target="preview" class="max-w-[200px] max-h-[150px] object-contain" alt="Generated image" />
               </div>
             </div>
 
             <!-- Options (right side) -->
             <div class="flex-1 min-w-0">
               <!-- Revised Prompt (if available) -->
-              <div class="hidden mb-3" data-image-picker-target="aiImageRevisedPromptContainer">
+              <div class="hidden mb-3" data-ai-images-target="revisedPromptContainer">
                 <label class="block text-xs text-[var(--theme-text-muted)] mb-1">AI-revised prompt</label>
-                <p class="text-xs text-[var(--theme-text-secondary)] bg-[var(--theme-bg-tertiary)] p-2 rounded line-clamp-2" data-image-picker-target="aiImageRevisedPrompt"></p>
+                <p class="text-xs text-[var(--theme-text-secondary)] bg-[var(--theme-bg-tertiary)] p-2 rounded line-clamp-2" data-ai-images-target="revisedPrompt"></p>
               </div>
 
               <!-- Save Options -->
-              <div class="space-y-2">
+              <div class="space-y-2" data-ai-images-target="s3Option">
                 <label class="block text-xs text-[var(--theme-text-muted)] mb-1">Save to:</label>
                 <label class="flex items-center gap-2 text-sm cursor-pointer">
                   <input
@@ -480,17 +670,16 @@
                     name="aiImageSaveOption"
                     value="local"
                     checked
-                    data-image-picker-target="aiImageSaveLocal"
                     class="text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
                   >
                   <span>notes/images/ directory</span>
                 </label>
-                <label class="flex items-center gap-2 text-sm cursor-pointer" data-image-picker-target="aiImageS3OptionContainer">
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
                   <input
                     type="radio"
                     name="aiImageSaveOption"
                     value="s3"
-                    data-image-picker-target="aiImageSaveS3"
+                    data-ai-images-target="saveS3"
                     class="text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
                   >
                   <span>AWS S3</span>
@@ -504,10 +693,10 @@
     </div><!-- End Scrollable Content Area -->
 
     <!-- Selected Image Options (shared across all tabs) -->
-    <div class="flex-shrink-0 border-t border-[var(--theme-border)] px-4 pt-3 hidden max-h-[200px] overflow-y-auto" data-image-picker-target="imageOptions">
+    <div class="flex-shrink-0 border-t border-[var(--theme-border)] px-4 pt-3 hidden max-h-[200px] overflow-y-auto" data-image-picker-target="options">
       <div class="flex items-center gap-2 mb-3 text-sm">
         <span class="text-[var(--theme-text-muted)]">Selected:</span>
-        <span class="font-medium truncate max-w-md" data-image-picker-target="selectedImageName"></span>
+        <span class="font-medium truncate max-w-md" data-image-picker-target="selectedName"></span>
       </div>
 
       <!-- Options -->
@@ -517,7 +706,7 @@
           <label class="block text-xs text-[var(--theme-text-muted)] mb-1">Alt Text (optional)</label>
           <input
             type="text"
-            data-image-picker-target="imageAlt"
+            data-image-picker-target="alt"
             class="w-full px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
             placeholder="Describe the image..."
           >
@@ -528,124 +717,28 @@
           <label class="block text-xs text-[var(--theme-text-muted)] mb-1">Link URL (optional, makes image clickable)</label>
           <input
             type="text"
-            data-image-picker-target="imageLink"
+            data-image-picker-target="link"
             class="w-full px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
             placeholder="https://..."
           >
-        </div>
-
-        <!-- S3 Upload Option (for local server images) -->
-        <div class="hidden" data-image-picker-target="s3Option">
-          <label class="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              data-image-picker-target="uploadToS3"
-              data-action="change->image-picker#onS3CheckboxChange"
-              class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-            >
-            <span>Upload to AWS S3 first</span>
-          </label>
-          <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-            Image will be uploaded to S3 and the URL will be used instead of local path
-          </p>
-          <!-- Resize option (only when S3 is checked) -->
-          <div class="hidden mt-2 ml-6" data-image-picker-target="resizeOptionLocal">
-            <label class="flex items-center gap-2 text-sm">
-              <span>Resize:</span>
-              <select
-                data-image-picker-target="resizeSelectLocal"
-                class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-              >
-                <option value="">None (original size)</option>
-                <option value="0.25">1/4 size (25%)</option>
-                <option value="0.5" selected>1/2 size (50%)</option>
-                <option value="0.67">2/3 size (67%)</option>
-              </select>
-              <span class="text-[var(--theme-text-muted)]">+ compress</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- S3 Upload Option (for local folder images) -->
-        <div class="hidden" data-image-picker-target="s3FolderOption">
-          <label class="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              data-image-picker-target="uploadFolderToS3"
-              data-action="change->image-picker#onS3FolderCheckboxChange"
-              class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-            >
-            <span>Upload to AWS S3</span>
-          </label>
-          <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-            Image will be uploaded to S3 (cloud URL). Otherwise saves to notes/images/ directory.
-          </p>
-          <!-- Resize option (always shown for folder uploads) -->
-          <div class="mt-2 ml-6" data-image-picker-target="resizeOptionFolder">
-            <label class="flex items-center gap-2 text-sm">
-              <span>Resize:</span>
-              <select
-                data-image-picker-target="resizeSelectFolder"
-                class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-              >
-                <option value="">None (original size)</option>
-                <option value="0.25">1/4 size (25%)</option>
-                <option value="0.5" selected>1/2 size (50%)</option>
-                <option value="0.67">2/3 size (67%)</option>
-              </select>
-              <span class="text-[var(--theme-text-muted)]">+ compress</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- S3 Re-upload Option (for external images) -->
-        <div class="hidden" data-image-picker-target="s3ExternalOption">
-          <label class="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              data-image-picker-target="reuploadToS3"
-              data-action="change->image-picker#onS3ExternalCheckboxChange"
-              class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-            >
-            <span>Download and re-upload to AWS S3</span>
-          </label>
-          <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-            Image will be downloaded and uploaded to your S3, using your URL instead of the original
-          </p>
-          <!-- Resize option (only when S3 is checked) -->
-          <div class="hidden mt-2 ml-6" data-image-picker-target="resizeOptionExternal">
-            <label class="flex items-center gap-2 text-sm">
-              <span>Resize:</span>
-              <select
-                data-image-picker-target="resizeSelectExternal"
-                class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-              >
-                <option value="">None (original size)</option>
-                <option value="0.25">1/4 size (25%)</option>
-                <option value="0.5" selected>1/2 size (50%)</option>
-                <option value="0.67">2/3 size (67%)</option>
-              </select>
-              <span class="text-[var(--theme-text-muted)]">+ compress</span>
-            </label>
-          </div>
         </div>
       </div>
     </div>
 
     <!-- Loading Indicator -->
-    <div class="flex-shrink-0 hidden items-center justify-center py-8 px-4" data-image-picker-target="imageLoading">
+    <div class="flex-shrink-0 hidden items-center justify-center py-8 px-4" data-image-picker-target="loading">
       <svg class="animate-spin w-6 h-6 text-[var(--theme-accent)]" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
-      <span class="ml-2 text-sm text-[var(--theme-text-muted)]" data-image-picker-target="imageLoadingText">Uploading to S3...</span>
+      <span class="ml-2 text-sm text-[var(--theme-text-muted)]" data-image-picker-target="loadingText">Uploading to S3...</span>
     </div>
 
     <!-- Footer -->
     <div class="flex-shrink-0 flex justify-end gap-2 px-4 pb-4 pt-4 border-t border-[var(--theme-border)]">
       <button
         type="button"
-        data-action="click->image-picker#closeImageDialog"
+        data-action="click->image-picker#closeDialog"
         class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
       >
         Cancel
@@ -653,7 +746,7 @@
       <button
         type="button"
         data-action="click->image-picker#insertImage"
-        data-image-picker-target="insertImageBtn"
+        data-image-picker-target="insertBtn"
         class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
         disabled
       >
