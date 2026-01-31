@@ -592,10 +592,51 @@ export default class extends Controller {
 
     // Only do markdown-specific processing for markdown files
     if (this.isMarkdownFile()) {
-      this.updatePreview()
+      this.updatePreviewWithSync()
       this.checkTableAtCursor()
       this.maintainTypewriterScroll()
     }
+  }
+
+  // Update preview and sync scroll to cursor position
+  updatePreviewWithSync() {
+    const previewController = this.getPreviewController()
+    if (!previewController || !previewController.isVisible) return
+    if (!this.hasTextareaTarget) return
+
+    const content = this.textareaTarget.value
+    const cursorPos = this.textareaTarget.selectionStart
+
+    // Calculate cursor line info
+    const textBeforeCursor = content.substring(0, cursorPos)
+    const currentLine = textBeforeCursor.split("\n").length
+    const totalLines = content.split("\n").length
+
+    // Only sync scroll when line changes (prevents jitter from typing on same line)
+    const lineChanged = this._lastSyncedLine !== currentLine ||
+                        this._lastSyncedTotalLines !== totalLines
+
+    // Debounce preview render to reduce DOM thrashing
+    if (this._previewRenderTimeout) {
+      clearTimeout(this._previewRenderTimeout)
+    }
+
+    this._previewRenderTimeout = setTimeout(() => {
+      // Build scroll data - only sync scroll if line changed
+      const scrollData = {
+        typewriterMode: this.typewriterModeEnabled,
+        currentLine,
+        totalLines,
+        syncToCursor: lineChanged
+      }
+
+      previewController.update(content, scrollData)
+
+      if (lineChanged) {
+        this._lastSyncedLine = currentLine
+        this._lastSyncedTotalLines = totalLines
+      }
+    }, 50) // Small debounce for render
   }
 
   // Check if cursor is in a markdown table

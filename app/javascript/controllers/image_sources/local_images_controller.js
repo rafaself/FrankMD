@@ -67,6 +67,9 @@ export default class extends Controller {
     const path = item.dataset.path
     const name = item.dataset.name
 
+    // Store the selected path for getImageUrl()
+    this.source.selectedPath = path
+
     // Deselect all and select this one
     this.source.deselectAll(this.gridTarget)
     item.classList.add("selected")
