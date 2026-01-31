@@ -370,6 +370,7 @@ class Config
     if config_file_path.exist?
       upgrade_config_file
     else
+      Rails.logger.info("Config file not found at #{config_file_path}, creating template...")
       create_template_config
     end
   end
@@ -387,7 +388,8 @@ class Config
     content = config_file_path.read
     parse_config(content)
   rescue => e
-    Rails.logger.warn("Failed to load .fed config: #{e.message}")
+    Rails.logger.error("Failed to load .fed config: #{e.class} - #{e.message}")
+    Rails.logger.error(e.backtrace.first(5).join("\n"))
     @values = {}
   end
 
@@ -511,13 +513,25 @@ class Config
   end
 
   def create_template_config
+    target_path = config_file_path
+    target_dir = target_path.dirname
+
     # Ensure parent directory exists
-    config_file_path.dirname.mkpath unless config_file_path.dirname.exist?
+    unless target_dir.exist?
+      Rails.logger.info("Creating notes directory: #{target_dir}")
+      target_dir.mkpath
+    end
 
     lines = generate_template_lines
-    config_file_path.write(lines.join("\n") + "\n")
+    Rails.logger.info("Creating .fed config at: #{target_path}")
+    target_path.write(lines.join("\n") + "\n")
+  rescue Errno::EACCES => e
+    Rails.logger.error("Permission denied creating .fed config at #{config_file_path}: #{e.message}")
+  rescue Errno::EROFS => e
+    Rails.logger.error("Read-only filesystem, cannot create .fed config at #{config_file_path}: #{e.message}")
   rescue => e
-    Rails.logger.warn("Failed to create .fed template: #{e.message}")
+    Rails.logger.error("Failed to create .fed template at #{config_file_path}: #{e.class} - #{e.message}")
+    Rails.logger.error(e.backtrace.first(5).join("\n"))
   end
 
   # Upgrade existing config file by adding NEW sections only

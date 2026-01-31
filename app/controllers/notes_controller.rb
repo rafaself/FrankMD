@@ -147,7 +147,8 @@ class NotesController < ApplicationController
       }
     }
   rescue => e
-    Rails.logger.warn("Failed to load config: #{e.message}")
+    Rails.logger.error("Failed to load config: #{e.class} - #{e.message}")
+    Rails.logger.error(e.backtrace.first(5).join("\n"))
     { settings: {}, features: {} }
   end
 end

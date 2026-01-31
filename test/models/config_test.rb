@@ -70,6 +70,17 @@ class ConfigTest < ActiveSupport::TestCase
     assert @test_dir.join(".fed").exist?
   end
 
+  test "creates config file and parent directory when neither exist" do
+    # Use a nested path that doesn't exist
+    nested_dir = @test_dir.join("nested", "deeply", "path")
+    FileUtils.rm_rf(nested_dir) # Make sure it doesn't exist
+
+    config = Config.new(base_path: nested_dir)
+
+    assert nested_dir.exist?, "Parent directory should be created"
+    assert nested_dir.join(".fed").exist?, ".fed file should be created"
+  end
+
   test "config file template contains all sections" do
     config = Config.new(base_path: @test_dir)
     content = @test_dir.join(".fed").read
