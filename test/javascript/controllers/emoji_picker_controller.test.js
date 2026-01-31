@@ -1,0 +1,571 @@
+/**
+ * @vitest-environment jsdom
+ */
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
+import { Application } from "@hotwired/stimulus"
+import EmojiPickerController from "../../../app/javascript/controllers/emoji_picker_controller.js"
+
+describe("EmojiPickerController", () => {
+  let application, controller, element
+
+  beforeEach(() => {
+    window.t = vi.fn((key) => key)
+
+    document.body.innerHTML = `
+      <div data-controller="emoji-picker"
+           data-emoji-picker-columns-value="10"
+           data-emoji-picker-emoticon-columns-value="5">
+        <dialog data-emoji-picker-target="dialog"></dialog>
+        <input data-emoji-picker-target="input" type="text" />
+        <div data-emoji-picker-target="grid"></div>
+        <div data-emoji-picker-target="preview"></div>
+        <button data-emoji-picker-target="tabEmoji" class="px-3 py-1 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"></button>
+        <button data-emoji-picker-target="tabEmoticons" class="px-3 py-1 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"></button>
+      </div>
+    `
+
+    // Mock showModal and close for dialog
+    HTMLDialogElement.prototype.showModal = vi.fn(function () {
+      this.open = true
+    })
+    HTMLDialogElement.prototype.close = vi.fn(function () {
+      this.open = false
+    })
+
+    // Mock scrollIntoView for all elements
+    Element.prototype.scrollIntoView = vi.fn()
+
+    element = document.querySelector('[data-controller="emoji-picker"]')
+    application = Application.start()
+    application.register("emoji-picker", EmojiPickerController)
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        controller = application.getControllerForElementAndIdentifier(element, "emoji-picker")
+        resolve()
+      }, 0)
+    })
+  })
+
+  afterEach(() => {
+    application.stop()
+    vi.restoreAllMocks()
+  })
+
+  describe("connect()", () => {
+    it("initializes emoji data arrays", () => {
+      expect(controller.allEmojis).toBeDefined()
+      expect(controller.allEmojis.length).toBeGreaterThan(0)
+      expect(controller.allEmoticons).toBeDefined()
+      expect(controller.allEmoticons.length).toBeGreaterThan(0)
+    })
+
+    it("initializes filtered items with all emojis", () => {
+      expect(controller.filteredItems).toEqual(controller.allEmojis)
+    })
+
+    it("initializes selected index to 0", () => {
+      expect(controller.selectedIndex).toBe(0)
+    })
+
+    it("initializes active tab to emoji", () => {
+      expect(controller.activeTab).toBe("emoji")
+    })
+  })
+
+  describe("open()", () => {
+    it("opens the dialog", () => {
+      controller.open()
+      expect(controller.dialogTarget.showModal).toHaveBeenCalled()
+    })
+
+    it("clears the search input", () => {
+      controller.inputTarget.value = "test"
+      controller.open()
+      expect(controller.inputTarget.value).toBe("")
+    })
+
+    it("resets to emoji tab", () => {
+      controller.activeTab = "emoticons"
+      controller.open()
+      expect(controller.activeTab).toBe("emoji")
+    })
+
+    it("resets selected index to 0", () => {
+      controller.selectedIndex = 5
+      controller.open()
+      expect(controller.selectedIndex).toBe(0)
+    })
+
+    it("renders emoji grid on open", () => {
+      controller.open()
+      expect(controller.gridTarget.innerHTML).toContain("button")
+      expect(controller.gridTarget.innerHTML).toContain("data-emoji")
+    })
+
+    it("updates preview on open", () => {
+      controller.open()
+      expect(controller.previewTarget.innerHTML).not.toBe("")
+    })
+  })
+
+  describe("close()", () => {
+    it("closes the dialog", () => {
+      controller.close()
+      expect(controller.dialogTarget.close).toHaveBeenCalled()
+    })
+  })
+
+  describe("tab switching", () => {
+    describe("switchToEmoji()", () => {
+      it("switches to emoji tab", () => {
+        controller.activeTab = "emoticons"
+        controller.switchToEmoji()
+        expect(controller.activeTab).toBe("emoji")
+      })
+
+      it("does nothing if already on emoji tab", () => {
+        controller.activeTab = "emoji"
+        const updateSpy = vi.spyOn(controller, "updateTabStyles")
+        controller.switchToEmoji()
+        expect(updateSpy).not.toHaveBeenCalled()
+      })
+
+      it("resets selected index when switching", () => {
+        controller.activeTab = "emoticons"
+        controller.selectedIndex = 5
+        controller.switchToEmoji()
+        expect(controller.selectedIndex).toBe(0)
+      })
+    })
+
+    describe("switchToEmoticons()", () => {
+      it("switches to emoticons tab", () => {
+        controller.activeTab = "emoji"
+        controller.switchToEmoticons()
+        expect(controller.activeTab).toBe("emoticons")
+      })
+
+      it("does nothing if already on emoticons tab", () => {
+        controller.activeTab = "emoticons"
+        const updateSpy = vi.spyOn(controller, "updateTabStyles")
+        controller.switchToEmoticons()
+        expect(updateSpy).not.toHaveBeenCalled()
+      })
+
+      it("resets selected index when switching", () => {
+        controller.activeTab = "emoji"
+        controller.selectedIndex = 5
+        controller.switchToEmoticons()
+        expect(controller.selectedIndex).toBe(0)
+      })
+    })
+  })
+
+  describe("onInput() - search filtering", () => {
+    it("filters emojis by shortcode", () => {
+      controller.activeTab = "emoji"
+      controller.inputTarget.value = "heart"
+      controller.onInput()
+
+      // Should find emojis with "heart" in name
+      expect(controller.filteredItems.some(([name]) => name.includes("heart"))).toBe(true)
+    })
+
+    it("filters emojis by keywords", () => {
+      controller.activeTab = "emoji"
+      controller.inputTarget.value = "love"
+      controller.onInput()
+
+      // Should find emojis with "love" in keywords
+      expect(controller.filteredItems.length).toBeGreaterThan(0)
+    })
+
+    it("filters emoticons by name", () => {
+      controller.activeTab = "emoticons"
+      controller.filteredItems = [...controller.allEmoticons]
+      controller.inputTarget.value = "happy"
+      controller.onInput()
+
+      expect(controller.filteredItems.some(([name]) => name.includes("happy"))).toBe(true)
+    })
+
+    it("filters emoticons by keywords", () => {
+      controller.activeTab = "emoticons"
+      controller.filteredItems = [...controller.allEmoticons]
+      controller.inputTarget.value = "smile"
+      controller.onInput()
+
+      expect(controller.filteredItems.length).toBeGreaterThan(0)
+    })
+
+    it("shows all items when search is empty", () => {
+      controller.activeTab = "emoji"
+      controller.inputTarget.value = ""
+      controller.onInput()
+
+      expect(controller.filteredItems).toEqual(controller.allEmojis)
+    })
+
+    it("shows empty state when no matches", () => {
+      controller.inputTarget.value = "xyznonexistent123"
+      controller.onInput()
+
+      expect(controller.filteredItems.length).toBe(0)
+      expect(controller.gridTarget.innerHTML).toContain("status.no_matches")
+    })
+
+    it("resets selected index on filter", () => {
+      controller.selectedIndex = 10
+      controller.inputTarget.value = "smile"
+      controller.onInput()
+
+      expect(controller.selectedIndex).toBe(0)
+    })
+  })
+
+  describe("getCurrentColumns()", () => {
+    it("returns emoji columns for emoji tab", () => {
+      controller.activeTab = "emoji"
+      expect(controller.getCurrentColumns()).toBe(10)
+    })
+
+    it("returns emoticon columns for emoticons tab", () => {
+      controller.activeTab = "emoticons"
+      expect(controller.getCurrentColumns()).toBe(5)
+    })
+  })
+
+  describe("keyboard navigation", () => {
+    beforeEach(() => {
+      controller.open()
+    })
+
+    describe("ArrowRight", () => {
+      it("moves selection right", () => {
+        const initialIndex = controller.selectedIndex
+        const event = new KeyboardEvent("keydown", { key: "ArrowRight" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).toHaveBeenCalled()
+        expect(controller.selectedIndex).toBe(initialIndex + 1)
+      })
+
+      it("wraps to beginning at end", () => {
+        controller.selectedIndex = controller.filteredItems.length - 1
+        const event = new KeyboardEvent("keydown", { key: "ArrowRight" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(controller.selectedIndex).toBe(0)
+      })
+    })
+
+    describe("ArrowLeft", () => {
+      it("moves selection left", () => {
+        controller.selectedIndex = 5
+        const event = new KeyboardEvent("keydown", { key: "ArrowLeft" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).toHaveBeenCalled()
+        expect(controller.selectedIndex).toBe(4)
+      })
+
+      it("wraps to end at beginning", () => {
+        controller.selectedIndex = 0
+        const event = new KeyboardEvent("keydown", { key: "ArrowLeft" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(controller.selectedIndex).toBe(controller.filteredItems.length - 1)
+      })
+    })
+
+    describe("ArrowDown", () => {
+      it("moves selection down one row", () => {
+        controller.selectedIndex = 0
+        const cols = controller.getCurrentColumns()
+        const event = new KeyboardEvent("keydown", { key: "ArrowDown" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).toHaveBeenCalled()
+        expect(controller.selectedIndex).toBe(cols)
+      })
+
+      it("wraps to first row at last row", () => {
+        const cols = controller.getCurrentColumns()
+        const total = controller.filteredItems.length
+        const lastRowStart = Math.floor((total - 1) / cols) * cols
+        controller.selectedIndex = lastRowStart // First item of last row
+
+        const event = new KeyboardEvent("keydown", { key: "ArrowDown" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        // Should wrap to first row, same column
+        expect(controller.selectedIndex).toBe(0)
+      })
+    })
+
+    describe("ArrowUp", () => {
+      it("moves selection up one row", () => {
+        const cols = controller.getCurrentColumns()
+        controller.selectedIndex = cols // Start at second row
+        const event = new KeyboardEvent("keydown", { key: "ArrowUp" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).toHaveBeenCalled()
+        expect(controller.selectedIndex).toBe(0)
+      })
+
+      it("wraps to last row at first row", () => {
+        controller.selectedIndex = 0
+        const event = new KeyboardEvent("keydown", { key: "ArrowUp" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        // Should be somewhere in the last row
+        const cols = controller.getCurrentColumns()
+        const total = controller.filteredItems.length
+        const lastRowStart = Math.floor((total - 1) / cols) * cols
+        expect(controller.selectedIndex).toBeGreaterThanOrEqual(lastRowStart)
+      })
+    })
+
+    describe("Tab", () => {
+      it("switches from emoji to emoticons tab", () => {
+        controller.activeTab = "emoji"
+        const event = new KeyboardEvent("keydown", { key: "Tab" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).toHaveBeenCalled()
+        expect(controller.activeTab).toBe("emoticons")
+      })
+
+      it("switches from emoticons to emoji tab", () => {
+        controller.activeTab = "emoticons"
+        const event = new KeyboardEvent("keydown", { key: "Tab" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).toHaveBeenCalled()
+        expect(controller.activeTab).toBe("emoji")
+      })
+
+      it("does not switch tabs with Shift+Tab", () => {
+        controller.activeTab = "emoji"
+        const event = new KeyboardEvent("keydown", { key: "Tab", shiftKey: true })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).not.toHaveBeenCalled()
+        expect(controller.activeTab).toBe("emoji")
+      })
+    })
+
+    describe("Enter", () => {
+      it("selects current item and dispatches event", () => {
+        const dispatchSpy = vi.spyOn(controller, "dispatch")
+        controller.selectedIndex = 0
+
+        const event = new KeyboardEvent("keydown", { key: "Enter" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(event.preventDefault).toHaveBeenCalled()
+        expect(dispatchSpy).toHaveBeenCalledWith("selected", expect.objectContaining({
+          detail: expect.objectContaining({
+            type: "emoji"
+          })
+        }))
+      })
+
+      it("dispatches emoji with shortcode format", () => {
+        const dispatchSpy = vi.spyOn(controller, "dispatch")
+        controller.activeTab = "emoji"
+        controller.selectedIndex = 0
+        const [shortcode] = controller.filteredItems[0]
+
+        const event = new KeyboardEvent("keydown", { key: "Enter" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(dispatchSpy).toHaveBeenCalledWith("selected", {
+          detail: { text: `:${shortcode}:`, type: "emoji" }
+        })
+      })
+
+      it("dispatches emoticon as raw text", () => {
+        controller.switchToEmoticons()
+        const dispatchSpy = vi.spyOn(controller, "dispatch")
+        controller.selectedIndex = 0
+        const [, emoticon] = controller.filteredItems[0]
+
+        const event = new KeyboardEvent("keydown", { key: "Enter" })
+        event.preventDefault = vi.fn()
+        controller.onKeydown(event)
+
+        expect(dispatchSpy).toHaveBeenCalledWith("selected", {
+          detail: { text: emoticon, type: "emoticons" }
+        })
+      })
+    })
+  })
+
+  describe("mouse interaction", () => {
+    beforeEach(() => {
+      controller.open()
+    })
+
+    describe("onHover()", () => {
+      it("updates selected index on hover", () => {
+        const mockEvent = {
+          currentTarget: { dataset: { index: "5" } }
+        }
+        controller.onHover(mockEvent)
+
+        expect(controller.selectedIndex).toBe(5)
+      })
+
+      it("does nothing for same index", () => {
+        controller.selectedIndex = 5
+        const renderSpy = vi.spyOn(controller, "renderGrid")
+
+        const mockEvent = {
+          currentTarget: { dataset: { index: "5" } }
+        }
+        controller.onHover(mockEvent)
+
+        expect(renderSpy).not.toHaveBeenCalled()
+      })
+    })
+
+    describe("selectFromClick()", () => {
+      it("dispatches emoji selection on click", () => {
+        const dispatchSpy = vi.spyOn(controller, "dispatch")
+        controller.activeTab = "emoji"
+
+        const mockEvent = {
+          currentTarget: { dataset: { shortcode: "smile" } }
+        }
+        controller.selectFromClick(mockEvent)
+
+        expect(dispatchSpy).toHaveBeenCalledWith("selected", {
+          detail: { text: ":smile:", type: "emoji" }
+        })
+      })
+
+      it("dispatches emoticon selection on click", () => {
+        const dispatchSpy = vi.spyOn(controller, "dispatch")
+        controller.activeTab = "emoticons"
+
+        const mockEvent = {
+          currentTarget: { dataset: { emoticon: "(◕‿◕)" } }
+        }
+        controller.selectFromClick(mockEvent)
+
+        expect(dispatchSpy).toHaveBeenCalledWith("selected", {
+          detail: { text: "(◕‿◕)", type: "emoticons" }
+        })
+      })
+    })
+  })
+
+  describe("rendering", () => {
+    describe("renderEmojiGrid()", () => {
+      beforeEach(() => {
+        controller.open()
+      })
+
+      it("renders emoji buttons with data attributes", () => {
+        const buttons = controller.gridTarget.querySelectorAll("button")
+        expect(buttons.length).toBeGreaterThan(0)
+
+        const firstButton = buttons[0]
+        expect(firstButton.dataset.index).toBe("0")
+        expect(firstButton.dataset.shortcode).toBeDefined()
+        expect(firstButton.dataset.emoji).toBeDefined()
+      })
+
+      it("highlights selected item", () => {
+        controller.selectedIndex = 0
+        controller.renderGrid()
+
+        const selectedButton = controller.gridTarget.querySelector('[data-index="0"]')
+        expect(selectedButton.classList.contains("bg-[var(--theme-accent)]")).toBe(true)
+      })
+    })
+
+    describe("renderEmoticonGrid()", () => {
+      beforeEach(() => {
+        controller.open()
+        controller.switchToEmoticons()
+      })
+
+      it("renders emoticon buttons with data attributes", () => {
+        const buttons = controller.gridTarget.querySelectorAll("button")
+        expect(buttons.length).toBeGreaterThan(0)
+
+        const firstButton = buttons[0]
+        expect(firstButton.dataset.index).toBe("0")
+        expect(firstButton.dataset.name).toBeDefined()
+        expect(firstButton.dataset.emoticon).toBeDefined()
+      })
+
+      it("uses different column count for emoticons", () => {
+        expect(controller.gridTarget.style.gridTemplateColumns).toContain("repeat(5")
+      })
+    })
+
+    describe("updatePreview()", () => {
+      it("shows emoji preview with shortcode", () => {
+        controller.activeTab = "emoji"
+        controller.filteredItems = [["smile", "😄", "happy"]]
+        controller.selectedIndex = 0
+        controller.updatePreview()
+
+        expect(controller.previewTarget.innerHTML).toContain("😄")
+        expect(controller.previewTarget.innerHTML).toContain(":smile:")
+      })
+
+      it("shows emoticon preview with name", () => {
+        controller.activeTab = "emoticons"
+        controller.filteredItems = [["happy", "(◕‿◕)", "smile"]]
+        controller.selectedIndex = 0
+        controller.updatePreview()
+
+        expect(controller.previewTarget.innerHTML).toContain("(◕‿◕)")
+        expect(controller.previewTarget.innerHTML).toContain("happy")
+      })
+
+      it("clears preview when no items", () => {
+        controller.filteredItems = []
+        controller.updatePreview()
+
+        expect(controller.previewTarget.innerHTML).toBe("")
+      })
+    })
+  })
+
+  describe("dispatchSelected()", () => {
+    it("dispatches selected event with text", () => {
+      const dispatchSpy = vi.spyOn(controller, "dispatch")
+      controller.activeTab = "emoji"
+      controller.dispatchSelected(":test:")
+
+      expect(dispatchSpy).toHaveBeenCalledWith("selected", {
+        detail: { text: ":test:", type: "emoji" }
+      })
+    })
+
+    it("closes dialog after dispatch", () => {
+      controller.dispatchSelected(":test:")
+      expect(controller.dialogTarget.close).toHaveBeenCalled()
+    })
+  })
+})

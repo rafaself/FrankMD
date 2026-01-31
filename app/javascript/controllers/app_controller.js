@@ -1721,8 +1721,8 @@ export default class extends Controller {
         this.openTextFormatMenu()
       }
 
-      // Ctrl/Cmd + L: Open emoji picker
-      if ((event.ctrlKey || event.metaKey) && event.key === "l") {
+      // Ctrl/Cmd + Shift + E: Open emoji picker
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "E") {
         event.preventDefault()
         this.openEmojiPicker()
       }
@@ -2024,25 +2024,25 @@ export default class extends Controller {
     }
   }
 
-  // Handle emoji selected event
+  // Handle emoji/emoticon selected event
   onEmojiSelected(event) {
     if (!this.hasTextareaTarget) return
 
-    const { markdown } = event.detail
-    if (!markdown) return
+    const { text: insertText } = event.detail
+    if (!insertText) return
 
     const textarea = this.textareaTarget
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const text = textarea.value
 
-    // Insert the emoji markdown at cursor position
+    // Insert the emoji/emoticon at cursor position
     const before = text.substring(0, start)
     const after = text.substring(end)
-    textarea.value = before + markdown + after
+    textarea.value = before + insertText + after
 
-    // Position cursor after the inserted emoji
-    const newPosition = start + markdown.length
+    // Position cursor after the inserted text
+    const newPosition = start + insertText.length
     textarea.setSelectionRange(newPosition, newPosition)
 
     textarea.focus()

@@ -76,7 +76,7 @@ he:
       ai: "AI"
       ai_title: "בדיקת דקדוק עם AI"
       emoji: "אימוג'י"
-      emoji_title: "הוסף אימוג'י (Ctrl+L)"
+      emoji_title: "הוסף אימוג'י (Ctrl+Shift+E)"
     # שכבת עיבוד AI
     processing_with: "מעבד עם"
     press_esc_to_cancel: "לחץ ESC לביטול"
@@ -357,6 +357,8 @@ he:
     emoji_picker:
       title: "בוחר אימוג'י"
       search_placeholder: "חפש אימוג'ים..."
+      tab_emoji: "אימוג'י"
+      tab_emoticons: "אמוטיקונים"
 
   # הודעות שגיאה
   errors:

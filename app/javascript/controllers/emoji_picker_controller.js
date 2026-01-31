@@ -3,7 +3,8 @@ import { escapeHtml } from "lib/text_utils"
 
 // Emoji Picker Controller
 // Handles emoji picker dialog with search and grid navigation
-// Dispatches emoji-picker:selected event with emoji shortcode
+// Supports both Unicode emojis and text emoticons (kaomoji)
+// Dispatches emoji-picker:selected event with emoji/emoticon text
 
 // Common emoji data: [shortcode, emoji character, keywords for search]
 const EMOJI_DATA = [
@@ -705,30 +706,191 @@ const EMOJI_DATA = [
   ["sparkler", "🎇", "fireworks celebration"]
 ]
 
+// Emoticon/Kaomoji data: [name, emoticon, keywords for search]
+const EMOTICON_DATA = [
+  // Happy & Positive
+  ["happy", "(◕‿◕)", "smile joy"],
+  ["excited", "(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧", "joy sparkle celebrate"],
+  ["very_happy", "(✿◠‿◠)", "smile flower cute"],
+  ["cute_happy", "(◠‿◠)", "smile simple"],
+  ["joyful", "(*^▽^*)", "happy grin"],
+  ["grinning", "(＾▽＾)", "smile happy"],
+  ["beaming", "(≧◡≦)", "joy bright"],
+  ["cheerful", "(｡◕‿◕｡)", "happy cute"],
+  ["delighted", "٩(◕‿◕｡)۶", "happy dance"],
+  ["sparkling", "(ﾉ´ヮ`)ﾉ*: ・゚✧", "happy magic"],
+  ["wink", "(^_~)", "flirt playful"],
+  ["winking", "(･ω<)☆", "star playful"],
+  ["peace", "(￣▽￣)ノ", "wave hello"],
+
+  // Love & Affection
+  ["love", "(♥‿♥)", "heart eyes adore"],
+  ["loving", "(´∀`)♡", "heart happy"],
+  ["hearts", "(｡♥‿♥｡)", "love adore"],
+  ["heart_eyes", "(ღ˘⌣˘ღ)", "love cute"],
+  ["blowing_kiss", "(づ￣ ³￣)づ", "kiss love"],
+  ["hug", "(つ≧▽≦)つ", "embrace love"],
+  ["hugging", "(づ｡◕‿‿◕｡)づ", "embrace cute"],
+  ["cuddle", "(っ´▽`)っ", "hug embrace"],
+  ["kiss", "(＾3＾)～♡", "love smooch"],
+  ["blushing", "(⁄ ⁄•⁄ω⁄•⁄ ⁄)", "shy embarrassed"],
+
+  // Sad & Upset
+  ["sad", "(´;ω;`)", "cry tears"],
+  ["crying", "(╥﹏╥)", "tears upset"],
+  ["tears", "(;_;)", "cry sad"],
+  ["weeping", "(っ˘̩╭╮˘̩)っ", "cry hug"],
+  ["sobbing", "( ´༎ຶㅂ༎ຶ`)", "cry loud"],
+  ["disappointed", "(´･_･`)", "sad down"],
+  ["depressed", "(｡•́︿•̀｡)", "sad down"],
+  ["hurt", "(｡ŏ﹏ŏ)", "pain sad"],
+  ["broken_heart", "(´;︵;`)", "sad love"],
+  ["lonely", "(ノ_<。)", "sad alone"],
+
+  // Angry & Frustrated
+  ["angry", "(╬ Ò﹏Ó)", "mad rage"],
+  ["rage", "(ノಠ益ಠ)ノ彡┻━┻", "flip table mad"],
+  ["furious", "(҂`з´)", "angry mad"],
+  ["annoyed", "(￣︿￣)", "irritated"],
+  ["frustrated", "(ノ°Д°）ノ︵ ┻━┻", "flip table angry"],
+  ["table_flip", "(╯°□°)╯︵ ┻━┻", "angry flip rage"],
+  ["put_table_back", "┬─┬ノ( º _ ºノ)", "calm restore"],
+  ["double_flip", "┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻", "rage flip"],
+  ["grumpy", "(¬_¬)", "annoyed side eye"],
+  ["pouting", "(´-ε-`)", "sulk annoyed"],
+
+  // Surprised & Shocked
+  ["surprised", "(°o°)", "shock wow"],
+  ["shocked", "Σ(°△°|||)", "surprise wow"],
+  ["amazed", "(⊙_⊙)", "shock stare"],
+  ["disbelief", "(」°ロ°)」", "shock arms"],
+  ["speechless", "(・□・;)", "shock silent"],
+  ["jaw_drop", "( ꒪Д꒪)ノ", "shock surprise"],
+  ["gasp", "(゜゜)", "surprise shock"],
+  ["startled", "∑(O_O;)", "surprise sudden"],
+
+  // Confused & Thinking
+  ["confused", "(・・?)", "puzzled question"],
+  ["thinking", "(￢_￢)", "ponder hmm"],
+  ["curious", "(◔_◔)", "wondering look"],
+  ["puzzled", "(・_・ヾ", "scratch head"],
+  ["pondering", "(´-ω-`)", "think hmm"],
+  ["unsure", "(；一_一)", "doubt uncertain"],
+  ["skeptical", "(¬‿¬)", "doubt suspicious"],
+  ["what", "(」゜ロ゜)」", "confused question"],
+
+  // Cute & Kawaii
+  ["cat", "(=^・ω・^=)", "neko meow"],
+  ["cat_happy", "(=①ω①=)", "neko cute"],
+  ["cat_excited", "ฅ(^・ω・^ฅ)", "neko paws"],
+  ["cat_sleepy", "(=｀ω´=)", "neko tired"],
+  ["bear", "ʕ•ᴥ•ʔ", "animal cute"],
+  ["bear_happy", "ʕ￫ᴥ￩ʔ", "animal smile"],
+  ["bunny", "(・x・)", "rabbit animal"],
+  ["bunny_hop", "⁽⁽◝( •௰• )◜⁾⁾", "rabbit jump"],
+  ["dog", "▼・ᴥ・▼", "puppy animal"],
+  ["pig", "(´・ω・)ﾉ", "oink animal"],
+  ["flower", "(✿´‿`)", "cute happy"],
+  ["sparkle", "☆*:.｡.o(≧▽≦)o.｡.:*☆", "star celebrate"],
+
+  // Actions & Gestures
+  ["shrug", "¯\\_(ツ)_/¯", "whatever idk"],
+  ["look_away", "(눈_눈)", "suspicious stare"],
+  ["hide", "|ω・)", "peek shy"],
+  ["hiding", "┬┴┬┴┤(･_├┬┴┬┴", "peek wall"],
+  ["running", "ε=ε=ε=┌(;*´Д`)ﾉ", "run escape"],
+  ["running_away", "ε=ε=ε=ε=┏(;￣▽￣)┛", "escape flee"],
+  ["dancing", "♪(´ε` )", "music happy"],
+  ["dance_party", "└( ＾ω＾)」", "celebrate music"],
+  ["cheering", "ヾ(＾-＾)ノ", "wave celebrate"],
+  ["pointing", "(☞ﾟ∀ﾟ)☞", "you there"],
+  ["writing", "φ(゜▽゜*)♪", "note pen"],
+  ["sleeping", "(－_－) zzZ", "tired sleep"],
+  ["yawning", "(´〜｀*) zzz", "tired sleepy"],
+
+  // Fighting & Strong
+  ["fighting", "(ง •̀_•́)ง", "fight strong"],
+  ["punch", "(ノ•̀ o •́)ノ ~ ┻━┻", "fight angry"],
+  ["flexing", "ᕙ(⇀‸↼‶)ᕗ", "strong muscle"],
+  ["determined", "(๑•̀ㅂ•́)و✧", "fight ready"],
+  ["ready", "(•̀ᴗ•́)و", "determined go"],
+  ["victory", "(ง'̀-'́)ง", "win fight"],
+
+  // Eating & Food
+  ["eating", "(っ˘ڡ˘ς)", "food yum"],
+  ["hungry", "(´ρ`)", "food want"],
+  ["delicious", "( ˘▽˘)っ♨", "food yum"],
+  ["drooling", "(´﹃｀)", "hungry food"],
+  ["cooking", "( ・ω・)o-{{[〃]", "food chef"],
+
+  // Music & Entertainment
+  ["singing", "(￣▽￣)/♪♪♪", "music song"],
+  ["headphones", "♪(´ε｀ )", "music listening"],
+  ["guitar", "♪♪ヽ(ˇ∀ˇ )ゞ", "music play"],
+  ["piano", "♬♩♪♩ヽ(・ˇ∀ˇ・ゞ)", "music play"],
+
+  // Weather & Nature
+  ["sunny", "☀ヽ(◕ᴗ◕ヽ)", "sun happy"],
+  ["rain", "( ´_ゝ`)☂", "umbrella weather"],
+  ["snow", "( *・ω・)ノ))(❅)", "cold winter"],
+  ["storm", "(;´༎ຶД༎ຶ`)", "rain sad"],
+
+  // Special & Misc
+  ["magic", "(ノ°∀°)ノ⌒・*:.。. .。.:*・゜゚・*", "sparkle star"],
+  ["wizard", "(∩｀-´)⊃━☆ﾟ.*･｡ﾟ", "magic spell"],
+  ["star", "☆(ゝω・)v", "sparkle wink"],
+  ["shooting_star", "☆彡", "star wish"],
+  ["fireworks", "・*:.｡. ✧ (ó‿ò｡) ✧ .｡.:*・", "celebrate party"],
+  ["rainbow", "☆:.｡.o(≧▽≦)o.｡.:*☆", "colorful happy"],
+  ["lenny", "( ͡° ͜ʖ ͡°)", "meme suspicious"],
+  ["disapproval", "ಠ_ಠ", "stare judge"],
+  ["donger", "ヽ༼ຈل͜ຈ༽ﾉ", "meme raise"],
+  ["cool", "(⌐■_■)", "sunglasses awesome"],
+  ["glasses_off", "( •_•)>⌐■-■", "reveal cool"],
+  ["thumbs_up", "(b ᵔ▽ᵔ)b", "approve good"],
+  ["ok", "(๑˃ᴗ˂)ﻭ", "good approve"],
+  ["applause", "(*´▽`)ノノ", "clap celebrate"],
+  ["bow", "m(_ _)m", "thanks sorry respect"],
+  ["salute", "(￣^￣)ゞ", "respect yes sir"],
+  ["goodbye", "(´・ω・)ノシ", "wave bye"],
+  ["hello", "(・ω・)ノ", "wave hi"],
+  ["take_my_money", "(╯°□°)╯$ $ $", "money throw"],
+  ["zombie", "[¬º-°]¬", "undead walking"],
+  ["robot", "{•̃_•̃}", "beep boop"],
+  ["alien", "⊂(◉‿◉)つ", "space extraterrestrial"]
+]
+
 export default class extends Controller {
   static targets = [
     "dialog",
     "input",
     "grid",
-    "preview"
+    "preview",
+    "tabEmoji",
+    "tabEmoticons"
   ]
 
   static values = {
-    columns: { type: Number, default: 10 }
+    columns: { type: Number, default: 10 },
+    emoticonColumns: { type: Number, default: 5 }
   }
 
   connect() {
     this.allEmojis = EMOJI_DATA
-    this.filteredEmojis = [...this.allEmojis]
+    this.allEmoticons = EMOTICON_DATA
+    this.filteredItems = [...this.allEmojis]
     this.selectedIndex = 0
+    this.activeTab = "emoji" // "emoji" or "emoticons"
   }
 
   // Open the emoji picker dialog
   open() {
-    this.filteredEmojis = [...this.allEmojis]
+    this.activeTab = "emoji"
+    this.filteredItems = [...this.allEmojis]
     this.selectedIndex = 0
 
     this.inputTarget.value = ""
+    this.updateTabStyles()
     this.renderGrid()
     this.updatePreview()
     this.dialogTarget.showModal()
@@ -740,16 +902,55 @@ export default class extends Controller {
     this.dialogTarget.close()
   }
 
+  // Switch to emoji tab
+  switchToEmoji() {
+    if (this.activeTab === "emoji") return
+    this.activeTab = "emoji"
+    this.selectedIndex = 0
+    this.updateTabStyles()
+    this.onInput() // Re-apply search filter
+  }
+
+  // Switch to emoticons tab
+  switchToEmoticons() {
+    if (this.activeTab === "emoticons") return
+    this.activeTab = "emoticons"
+    this.selectedIndex = 0
+    this.updateTabStyles()
+    this.onInput() // Re-apply search filter
+  }
+
+  // Update tab button styles
+  updateTabStyles() {
+    const activeClass = "bg-[var(--theme-accent)] text-[var(--theme-accent-text)]"
+    const inactiveClass = "hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+
+    if (this.hasTabEmojiTarget && this.hasTabEmoticonsTarget) {
+      if (this.activeTab === "emoji") {
+        this.tabEmojiTarget.className = this.tabEmojiTarget.className.replace(inactiveClass, "").trim()
+        this.tabEmojiTarget.classList.add(...activeClass.split(" "))
+        this.tabEmoticonsTarget.className = this.tabEmoticonsTarget.className.replace(activeClass, "").trim()
+        this.tabEmoticonsTarget.classList.add(...inactiveClass.split(" "))
+      } else {
+        this.tabEmoticonsTarget.className = this.tabEmoticonsTarget.className.replace(inactiveClass, "").trim()
+        this.tabEmoticonsTarget.classList.add(...activeClass.split(" "))
+        this.tabEmojiTarget.className = this.tabEmojiTarget.className.replace(activeClass, "").trim()
+        this.tabEmojiTarget.classList.add(...inactiveClass.split(" "))
+      }
+    }
+  }
+
   // Handle search input
   onInput() {
     const query = this.inputTarget.value.trim().toLowerCase()
+    const sourceData = this.activeTab === "emoji" ? this.allEmojis : this.allEmoticons
 
     if (!query) {
-      this.filteredEmojis = [...this.allEmojis]
+      this.filteredItems = [...sourceData]
     } else {
-      // Search in shortcode and keywords
-      this.filteredEmojis = this.allEmojis.filter(([shortcode, , keywords]) => {
-        const searchText = `${shortcode} ${keywords}`.toLowerCase()
+      // Search in name/shortcode and keywords
+      this.filteredItems = sourceData.filter(([name, , keywords]) => {
+        const searchText = `${name} ${keywords}`.toLowerCase()
         return query.split(/\s+/).every(term => searchText.includes(term))
       })
     }
@@ -759,18 +960,41 @@ export default class extends Controller {
     this.updatePreview()
   }
 
-  // Render the emoji grid
+  // Get current number of columns based on active tab
+  getCurrentColumns() {
+    return this.activeTab === "emoji" ? this.columnsValue : this.emoticonColumnsValue
+  }
+
+  // Render the grid (emoji or emoticon)
   renderGrid() {
-    if (this.filteredEmojis.length === 0) {
+    const cols = this.getCurrentColumns()
+
+    if (this.filteredItems.length === 0) {
       this.gridTarget.innerHTML = `
         <div class="col-span-full px-3 py-6 text-center text-[var(--theme-text-muted)] text-sm">
           ${window.t ? window.t("status.no_matches") : "No matches found"}
         </div>
       `
+      this.gridTarget.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`
       return
     }
 
-    this.gridTarget.innerHTML = this.filteredEmojis
+    if (this.activeTab === "emoji") {
+      this.renderEmojiGrid()
+    } else {
+      this.renderEmoticonGrid()
+    }
+
+    // Update grid columns
+    this.gridTarget.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`
+
+    // Scroll selected item into view
+    this.scrollSelectedIntoView()
+  }
+
+  // Render emoji grid
+  renderEmojiGrid() {
+    this.gridTarget.innerHTML = this.filteredItems
       .map(([shortcode, emoji], index) => {
         const isSelected = index === this.selectedIndex
         return `
@@ -788,12 +1012,31 @@ export default class extends Controller {
         `
       })
       .join("")
-
-    // Scroll selected item into view
-    this.scrollSelectedIntoView()
   }
 
-  // Scroll the selected emoji into view
+  // Render emoticon grid
+  renderEmoticonGrid() {
+    this.gridTarget.innerHTML = this.filteredItems
+      .map(([name, emoticon], index) => {
+        const isSelected = index === this.selectedIndex
+        return `
+          <button
+            type="button"
+            class="px-2 py-2 flex items-center justify-center text-sm rounded hover:bg-[var(--theme-bg-hover)] transition-colors truncate ${
+              isSelected ? 'bg-[var(--theme-accent)] text-[var(--theme-accent-text)] ring-2 ring-[var(--theme-accent)] ring-offset-1 ring-offset-[var(--theme-bg-secondary)]' : 'text-[var(--theme-text-primary)]'
+            }"
+            data-index="${index}"
+            data-name="${escapeHtml(name)}"
+            data-emoticon="${escapeHtml(emoticon)}"
+            data-action="click->emoji-picker#selectFromClick mouseenter->emoji-picker#onHover"
+            title="${escapeHtml(name)}"
+          >${escapeHtml(emoticon)}</button>
+        `
+      })
+      .join("")
+  }
+
+  // Scroll the selected item into view
   scrollSelectedIntoView() {
     const selectedButton = this.gridTarget.querySelector(`[data-index="${this.selectedIndex}"]`)
     if (selectedButton) {
@@ -801,28 +1044,35 @@ export default class extends Controller {
     }
   }
 
-  // Update the preview area with selected emoji info
+  // Update the preview area with selected item info
   updatePreview() {
-    if (this.filteredEmojis.length === 0 || !this.hasPreviewTarget) {
+    if (this.filteredItems.length === 0 || !this.hasPreviewTarget) {
       if (this.hasPreviewTarget) {
         this.previewTarget.innerHTML = ""
       }
       return
     }
 
-    const [shortcode, emoji] = this.filteredEmojis[this.selectedIndex] || []
-    if (!shortcode) return
+    const [name, display] = this.filteredItems[this.selectedIndex] || []
+    if (!name) return
 
-    this.previewTarget.innerHTML = `
-      <span class="text-4xl">${emoji}</span>
-      <code class="text-sm bg-[var(--theme-bg-tertiary)] px-2 py-1 rounded">:${escapeHtml(shortcode)}:</code>
-    `
+    if (this.activeTab === "emoji") {
+      this.previewTarget.innerHTML = `
+        <span class="text-4xl">${display}</span>
+        <code class="text-sm bg-[var(--theme-bg-tertiary)] px-2 py-1 rounded">:${escapeHtml(name)}:</code>
+      `
+    } else {
+      this.previewTarget.innerHTML = `
+        <span class="text-lg font-mono">${escapeHtml(display)}</span>
+        <span class="text-sm text-[var(--theme-text-muted)]">${escapeHtml(name)}</span>
+      `
+    }
   }
 
   // Handle keyboard navigation
   onKeydown(event) {
-    const cols = this.columnsValue
-    const total = this.filteredEmojis.length
+    const cols = this.getCurrentColumns()
+    const total = this.filteredItems.length
 
     if (total === 0) return
 
@@ -870,6 +1120,18 @@ export default class extends Controller {
         this.updatePreview()
         break
 
+      case "Tab":
+        // Switch tabs with Tab key (without Shift)
+        if (!event.shiftKey) {
+          event.preventDefault()
+          if (this.activeTab === "emoji") {
+            this.switchToEmoticons()
+          } else {
+            this.switchToEmoji()
+          }
+        }
+        break
+
       case "Enter":
         event.preventDefault()
         this.selectCurrent()
@@ -881,7 +1143,7 @@ export default class extends Controller {
     }
   }
 
-  // Handle mouse hover on emoji
+  // Handle mouse hover on item
   onHover(event) {
     const index = parseInt(event.currentTarget.dataset.index, 10)
     if (!isNaN(index) && index !== this.selectedIndex) {
@@ -891,28 +1153,39 @@ export default class extends Controller {
     }
   }
 
-  // Handle click on emoji
+  // Handle click on item
   selectFromClick(event) {
-    const shortcode = event.currentTarget.dataset.shortcode
-    if (shortcode) {
-      this.dispatchSelected(shortcode)
+    if (this.activeTab === "emoji") {
+      const shortcode = event.currentTarget.dataset.shortcode
+      if (shortcode) {
+        this.dispatchSelected(`:${shortcode}:`)
+      }
+    } else {
+      const emoticon = event.currentTarget.dataset.emoticon
+      if (emoticon) {
+        this.dispatchSelected(emoticon)
+      }
     }
   }
 
-  // Select current emoji
+  // Select current item
   selectCurrent() {
-    if (this.filteredEmojis.length === 0) return
+    if (this.filteredItems.length === 0) return
 
-    const [shortcode] = this.filteredEmojis[this.selectedIndex] || []
-    if (shortcode) {
-      this.dispatchSelected(shortcode)
+    const [name, display] = this.filteredItems[this.selectedIndex] || []
+    if (!name) return
+
+    if (this.activeTab === "emoji") {
+      this.dispatchSelected(`:${name}:`)
+    } else {
+      this.dispatchSelected(display)
     }
   }
 
   // Dispatch selection event and close
-  dispatchSelected(shortcode) {
+  dispatchSelected(text) {
     this.dispatch("selected", {
-      detail: { shortcode, markdown: `:${shortcode}:` }
+      detail: { text, type: this.activeTab }
     })
     this.close()
   }

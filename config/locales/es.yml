@@ -76,7 +76,7 @@ es:
       ai: "IA"
       ai_title: "Revisión Gramatical con IA"
       emoji: "Emoji"
-      emoji_title: "Insertar Emoji (Ctrl+L)"
+      emoji_title: "Insertar Emoji (Ctrl+Shift+E)"
     # AI processing overlay
     processing_with: "Procesando con"
     press_esc_to_cancel: "Presiona ESC para cancelar"
@@ -357,6 +357,8 @@ es:
     emoji_picker:
       title: "Selector de Emoji"
       search_placeholder: "Buscar emojis..."
+      tab_emoji: "Emoji"
+      tab_emoticons: "Emoticones"
 
   # Error messages
   errors:

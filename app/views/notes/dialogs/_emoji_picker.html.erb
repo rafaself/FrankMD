@@ -1,6 +1,7 @@
 <!-- Emoji Picker Dialog -->
 <div data-controller="emoji-picker"
      data-emoji-picker-columns-value="10"
+     data-emoji-picker-emoticon-columns-value="5"
      data-action="emoji-picker:selected->app#onEmojiSelected">
   <dialog
     class="p-0 rounded-lg shadow-xl backdrop:bg-black/50 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] w-[500px] max-h-[70vh]"
@@ -8,10 +9,23 @@
     data-app-target="emojiPickerDialog"
   >
     <div class="flex flex-col h-full max-h-[70vh]">
-      <!-- Header with search -->
+      <!-- Header with tabs and search -->
       <div class="flex-none p-3 border-b border-[var(--theme-border)]">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-sm font-semibold text-[var(--theme-text-primary)]"><%= t('dialogs.emoji_picker.title') %></h3>
+          <div class="flex gap-1">
+            <button
+              type="button"
+              data-emoji-picker-target="tabEmoji"
+              data-action="click->emoji-picker#switchToEmoji"
+              class="px-3 py-1 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)]"
+            ><%= t('dialogs.emoji_picker.tab_emoji') %></button>
+            <button
+              type="button"
+              data-emoji-picker-target="tabEmoticons"
+              data-action="click->emoji-picker#switchToEmoticons"
+              class="px-3 py-1 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+            ><%= t('dialogs.emoji_picker.tab_emoticons') %></button>
+          </div>
           <button
             type="button"
             data-action="click->emoji-picker#close"
@@ -33,13 +47,14 @@
         >
       </div>
 
-      <!-- Emoji grid -->
+      <!-- Grid -->
       <div class="flex-1 overflow-y-auto p-3 min-h-0">
         <div
           data-emoji-picker-target="grid"
-          class="grid grid-cols-10 gap-1"
+          class="grid gap-1"
+          style="grid-template-columns: repeat(10, minmax(0, 1fr));"
         >
-          <!-- Emojis rendered by JavaScript -->
+          <!-- Items rendered by JavaScript -->
         </div>
       </div>
 

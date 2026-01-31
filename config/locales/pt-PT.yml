@@ -76,7 +76,7 @@ pt-PT:
       ai: "IA"
       ai_title: "Verificação Gramatical com IA"
       emoji: "Emoji"
-      emoji_title: "Inserir Emoji (Ctrl+L)"
+      emoji_title: "Inserir Emoji (Ctrl+Shift+E)"
     # Overlay de processamento IA
     processing_with: "A processar com"
     press_esc_to_cancel: "Prima ESC para cancelar"
@@ -357,6 +357,8 @@ pt-PT:
     emoji_picker:
       title: "Seletor de Emoji"
       search_placeholder: "Pesquisar emojis..."
+      tab_emoji: "Emoji"
+      tab_emoticons: "Emoticons"
 
   # Mensagens de erro
   errors:
