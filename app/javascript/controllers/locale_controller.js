@@ -8,8 +8,11 @@ export default class extends Controller {
   static locales = [
     { id: "en", name: "English", flag: "us" },
     { id: "pt-BR", name: "Português (Brasil)", flag: "br" },
+    { id: "pt-PT", name: "Português (Portugal)", flag: "pt" },
     { id: "es", name: "Español", flag: "es" },
-    { id: "ja", name: "日本語", flag: "jp" }
+    { id: "he", name: "עברית", flag: "il" },
+    { id: "ja", name: "日本語", flag: "jp" },
+    { id: "ko", name: "한국어", flag: "kr" }
   ]
 
   connect() {
@@ -160,8 +163,11 @@ export default class extends Controller {
     const flags = {
       us: `<span class="text-base">🇺🇸</span>`,
       br: `<span class="text-base">🇧🇷</span>`,
+      pt: `<span class="text-base">🇵🇹</span>`,
       es: `<span class="text-base">🇪🇸</span>`,
-      jp: `<span class="text-base">🇯🇵</span>`
+      il: `<span class="text-base">🇮🇱</span>`,
+      jp: `<span class="text-base">🇯🇵</span>`,
+      kr: `<span class="text-base">🇰🇷</span>`
     }
     return flags[flagCode] || ""
   }

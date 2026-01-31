@@ -149,7 +149,7 @@ class TranslationsControllerTest < ActionDispatch::IntegrationTest
   test "all locales have complete common translations" do
     required_keys = %w[cancel apply save create delete rename close search insert edit ok]
 
-    %w[en pt-BR es ja].each do |locale|
+    %w[en pt-BR pt-PT es he ja ko].each do |locale|
       ENV["FRANKMD_LOCALE"] = locale
       get translations_url, as: :json
       data = JSON.parse(response.body)
@@ -166,7 +166,7 @@ class TranslationsControllerTest < ActionDispatch::IntegrationTest
   test "all locales have complete status translations" do
     required_keys = %w[saved unsaved error_saving error_loading searching no_matches]
 
-    %w[en pt-BR es ja].each do |locale|
+    %w[en pt-BR pt-PT es he ja ko].each do |locale|
       ENV["FRANKMD_LOCALE"] = locale
       get translations_url, as: :json
       data = JSON.parse(response.body)
@@ -183,7 +183,7 @@ class TranslationsControllerTest < ActionDispatch::IntegrationTest
   test "all locales have complete error translations" do
     required_keys = %w[note_not_found folder_not_found file_not_found]
 
-    %w[en pt-BR es ja].each do |locale|
+    %w[en pt-BR pt-PT es he ja ko].each do |locale|
       ENV["FRANKMD_LOCALE"] = locale
       get translations_url, as: :json
       data = JSON.parse(response.body)

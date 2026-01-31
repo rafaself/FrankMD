@@ -21,9 +21,12 @@ es:
   # Languages
   languages:
     en: "English"
-    pt_BR: "Portugues (Brasil)"
+    pt_BR: "Português (Brasil)"
+    pt_PT: "Português (Portugal)"
     es: "Español"
+    he: "עברית"
     ja: "日本語"
+    ko: "한국어"
 
   # Header section
   header:
