@@ -109,6 +109,15 @@ export default class extends Controller {
     })
   }
 
+  onS3CheckboxChange(event) {
+    if (this.hasResizeOptionTarget) {
+      this.resizeOptionTarget.classList.toggle("hidden", !event.target.checked)
+      if (!event.target.checked && this.hasResizeSelectTarget) {
+        this.resizeSelectTarget.value = "0.5"
+      }
+    }
+  }
+
   async getImageUrl() {
     if (!this.selectedImage) return null
 
@@ -130,6 +139,7 @@ export default class extends Controller {
     if (this.hasSearchTarget) this.searchTarget.value = ""
     if (this.hasS3OptionTarget) this.s3OptionTarget.classList.add("hidden")
     if (this.hasUploadToS3Target) this.uploadToS3Target.checked = false
+    if (this.hasResizeOptionTarget) this.resizeOptionTarget.classList.add("hidden")
     this.setupUI()
   }
 }
