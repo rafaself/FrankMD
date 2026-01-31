@@ -71,108 +71,112 @@
 
 ## Quick Start
 
-Add this function to your `~/.bashrc` or `~/.zshrc`:
+### 1. Set Environment Variables
+
+Add to your `~/.bashrc` or `~/.zshrc` (set only what you need):
 
 ```bash
-fed() {
-  docker run --rm -p 3000:80 \
-    -v "$(realpath "${1:-.}")":/rails/notes \
-    akitaonrails/frankmd:latest
-}
-```
+# ─── FrankMD Configuration ───────────────────────────────────────────────────
+# UI
+export FRANKMD_LOCALE=en                              # en, pt-BR, pt-PT, es, he, ja, ko
 
-Then reload your shell and run:
-
-```bash
-# Open current directory as notes
-fed .
-
-# Or open a specific directory
-fed ~/my-blog/content
-
-# Open http://localhost:3000
-```
-
-Press `Ctrl+C` to stop.
-
-### With Optional Features
-
-For S3 image uploads and YouTube search, export the environment variables first:
-
-```bash
-fed() {
-  docker run --rm -p 3000:80 \
-    -v "$(realpath "${1:-.}")":/rails/notes \
-    ${FRANKMD_LOCALE:+-e FRANKMD_LOCALE="$FRANKMD_LOCALE"} \
-    ${IMAGES_PATH:+-v "$(realpath "$IMAGES_PATH")":/rails/images -e IMAGES_PATH=/rails/images} \
-    ${AWS_ACCESS_KEY_ID:+-e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"} \
-    ${AWS_SECRET_ACCESS_KEY:+-e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"} \
-    ${AWS_S3_BUCKET:+-e AWS_S3_BUCKET="$AWS_S3_BUCKET"} \
-    ${AWS_REGION:+-e AWS_REGION="$AWS_REGION"} \
-    ${YOUTUBE_API_KEY:+-e YOUTUBE_API_KEY="$YOUTUBE_API_KEY"} \
-    ${GOOGLE_API_KEY:+-e GOOGLE_API_KEY="$GOOGLE_API_KEY"} \
-    ${GOOGLE_CSE_ID:+-e GOOGLE_CSE_ID="$GOOGLE_CSE_ID"} \
-    ${AI_PROVIDER:+-e AI_PROVIDER="$AI_PROVIDER"} \
-    ${AI_MODEL:+-e AI_MODEL="$AI_MODEL"} \
-    ${OLLAMA_API_BASE:+-e OLLAMA_API_BASE="$OLLAMA_API_BASE"} \
-    ${OLLAMA_MODEL:+-e OLLAMA_MODEL="$OLLAMA_MODEL"} \
-    ${OPENROUTER_API_KEY:+-e OPENROUTER_API_KEY="$OPENROUTER_API_KEY"} \
-    ${OPENROUTER_MODEL:+-e OPENROUTER_MODEL="$OPENROUTER_MODEL"} \
-    ${ANTHROPIC_API_KEY:+-e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"} \
-    ${ANTHROPIC_MODEL:+-e ANTHROPIC_MODEL="$ANTHROPIC_MODEL"} \
-    ${GEMINI_API_KEY:+-e GEMINI_API_KEY="$GEMINI_API_KEY"} \
-    ${GEMINI_MODEL:+-e GEMINI_MODEL="$GEMINI_MODEL"} \
-    ${OPENAI_API_KEY:+-e OPENAI_API_KEY="$OPENAI_API_KEY"} \
-    ${OPENAI_MODEL:+-e OPENAI_MODEL="$OPENAI_MODEL"} \
-    akitaonrails/frankmd:latest
-}
-```
-
-Then set your keys in `~/.bashrc` or `~/.zshrc`:
-
-```bash
-# Optional: Local images directory
+# Local images (browse from your filesystem)
 export IMAGES_PATH=~/Pictures
 
-# Optional: S3 for image hosting
+# S3 image hosting
 export AWS_ACCESS_KEY_ID=your-key
 export AWS_SECRET_ACCESS_KEY=your-secret
 export AWS_S3_BUCKET=your-bucket
 export AWS_REGION=us-east-1
 
-# Optional: YouTube video search
-export YOUTUBE_API_KEY=your-youtube-api-key
+# YouTube video search
+export YOUTUBE_API_KEY=your-key
 
-# Optional: Google image search
-export GOOGLE_API_KEY=your-google-api-key
-export GOOGLE_CSE_ID=your-search-engine-id
+# Google image search
+export GOOGLE_API_KEY=your-key
+export GOOGLE_CSE_ID=your-cse-id
 
-# Optional: AI grammar checking (configure one or more providers)
-# Priority (auto mode): OpenAI > Anthropic > Gemini > OpenRouter > Ollama
+# AI grammar check - configure one or more (priority: OpenAI > Anthropic > Gemini > OpenRouter > Ollama)
+export OLLAMA_API_BASE=http://host.docker.internal:11434  # use host.docker.internal for Docker
+export OPENROUTER_API_KEY=sk-or-...
+export ANTHROPIC_API_KEY=sk-ant-...
+export GEMINI_API_KEY=...
+export OPENAI_API_KEY=sk-...
+# ─────────────────────────────────────────────────────────────────────────────
+```
 
-# Ollama (local, free)
-export OLLAMA_API_BASE=http://localhost:11434
-export OLLAMA_MODEL=llama3.2:latest
+### 2. Add the `fed` Function
 
-# OpenRouter
-export OPENROUTER_API_KEY=your-openrouter-api-key
-export OPENROUTER_MODEL=openai/gpt-4o-mini
+```bash
+# FrankMD editor function - stops any running instance before starting
+fed() {
+  docker stop frankmd 2>/dev/null
+  docker rm frankmd 2>/dev/null
 
-# Anthropic
-export ANTHROPIC_API_KEY=your-anthropic-api-key
-export ANTHROPIC_MODEL=claude-sonnet-4-20250514
+  local args=(-p 3000:80 -v "$(realpath "${1:-.}"):/rails/notes")
 
-# Gemini
-export GEMINI_API_KEY=your-gemini-api-key
-export GEMINI_MODEL=gemini-2.0-flash
+  [[ -n "$FRANKMD_LOCALE" ]] && args+=(-e "FRANKMD_LOCALE=$FRANKMD_LOCALE")
+  [[ -n "$IMAGES_PATH" ]] && args+=(-v "$(realpath "$IMAGES_PATH"):/rails/images" -e IMAGES_PATH=/rails/images)
+  [[ -n "$AWS_ACCESS_KEY_ID" ]] && args+=(-e "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID")
+  [[ -n "$AWS_SECRET_ACCESS_KEY" ]] && args+=(-e "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY")
+  [[ -n "$AWS_S3_BUCKET" ]] && args+=(-e "AWS_S3_BUCKET=$AWS_S3_BUCKET")
+  [[ -n "$AWS_REGION" ]] && args+=(-e "AWS_REGION=$AWS_REGION")
+  [[ -n "$YOUTUBE_API_KEY" ]] && args+=(-e "YOUTUBE_API_KEY=$YOUTUBE_API_KEY")
+  [[ -n "$GOOGLE_API_KEY" ]] && args+=(-e "GOOGLE_API_KEY=$GOOGLE_API_KEY")
+  [[ -n "$GOOGLE_CSE_ID" ]] && args+=(-e "GOOGLE_CSE_ID=$GOOGLE_CSE_ID")
+  [[ -n "$AI_PROVIDER" ]] && args+=(-e "AI_PROVIDER=$AI_PROVIDER")
+  [[ -n "$AI_MODEL" ]] && args+=(-e "AI_MODEL=$AI_MODEL")
+  [[ -n "$OLLAMA_API_BASE" ]] && args+=(-e "OLLAMA_API_BASE=$OLLAMA_API_BASE")
+  [[ -n "$OLLAMA_MODEL" ]] && args+=(-e "OLLAMA_MODEL=$OLLAMA_MODEL")
+  [[ -n "$OPENROUTER_API_KEY" ]] && args+=(-e "OPENROUTER_API_KEY=$OPENROUTER_API_KEY")
+  [[ -n "$OPENROUTER_MODEL" ]] && args+=(-e "OPENROUTER_MODEL=$OPENROUTER_MODEL")
+  [[ -n "$ANTHROPIC_API_KEY" ]] && args+=(-e "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY")
+  [[ -n "$ANTHROPIC_MODEL" ]] && args+=(-e "ANTHROPIC_MODEL=$ANTHROPIC_MODEL")
+  [[ -n "$GEMINI_API_KEY" ]] && args+=(-e "GEMINI_API_KEY=$GEMINI_API_KEY")
+  [[ -n "$GEMINI_MODEL" ]] && args+=(-e "GEMINI_MODEL=$GEMINI_MODEL")
+  [[ -n "$OPENAI_API_KEY" ]] && args+=(-e "OPENAI_API_KEY=$OPENAI_API_KEY")
+  [[ -n "$OPENAI_MODEL" ]] && args+=(-e "OPENAI_MODEL=$OPENAI_MODEL")
 
-# OpenAI
-export OPENAI_API_KEY=your-openai-api-key
-export OPENAI_MODEL=gpt-4o-mini
+  docker run --name frankmd --rm "${args[@]}" akitaonrails/frankmd:latest
+}
+```
 
-# Override provider selection (optional)
-export AI_PROVIDER=auto
-export AI_MODEL=  # Override model for any provider
+### 3. Reload and Run
+
+```bash
+source ~/.bashrc  # or ~/.zshrc
+
+fed ~/my-notes    # open a specific directory
+fed .             # open current directory
+```
+
+Press `Ctrl+C` to stop.
+
+### 4. Open as Desktop App (Optional)
+
+Open FrankMD in app mode for a native-like experience (no URL bar, tabs, or bookmarks):
+
+```bash
+# Chromium
+chromium --app=http://localhost:3000
+
+# Google Chrome
+google-chrome --app=http://localhost:3000
+
+# Brave
+brave --app=http://localhost:3000
+
+# Microsoft Edge
+microsoft-edge --app=http://localhost:3000
+
+# Firefox (requires about:config → browser.ssb.enabled = true)
+firefox --ssb http://localhost:3000
+```
+
+Add an alias for convenience:
+
+```bash
+alias frankmd='chromium --app=http://localhost:3000'
 ```
 
 ### Running in Background
