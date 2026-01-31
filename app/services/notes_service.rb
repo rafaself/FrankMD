@@ -92,9 +92,8 @@ class NotesService
     end
 
     results = []
-    all_files = collect_markdown_files(@base_path)
-
-    all_files.each do |file_path|
+    # Use unsorted file collection for faster search
+    collect_markdown_files_unsorted(@base_path) do |file_path|
       break if results.size >= max_results
 
       relative_path = file_path.relative_path_from(@base_path).to_s
@@ -110,6 +109,7 @@ class NotesService
 
   private
 
+  # Collect files sorted by modification time (for file finder/tree display)
   def collect_markdown_files(dir)
     files = []
     return files unless dir.directory?
@@ -125,6 +125,22 @@ class NotesService
     end
 
     files
+  end
+
+  # Collect files without sorting - faster for search (no mtime stat calls)
+  # Uses block for early termination when max results reached
+  def collect_markdown_files_unsorted(dir, &block)
+    return unless dir.directory?
+
+    dir.children.each do |entry|
+      next if entry.basename.to_s.start_with?(".")
+
+      if entry.directory?
+        collect_markdown_files_unsorted(entry, &block)
+      elsif entry.extname == ".md"
+        yield entry
+      end
+    end
   end
 
   def search_file(file_path, regex, context_lines, max_matches)

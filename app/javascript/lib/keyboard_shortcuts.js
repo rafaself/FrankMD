@@ -1,11 +1,14 @@
 // Keyboard shortcuts utility - Declarative shortcut definitions and matching
-// Extracted from app_controller.js for maintainability
+// Extracted from app_controller.js for maintainability and future user customization
 
 /**
  * Shortcut definitions with key, ctrl, shift, alt, meta modifiers
  * All shortcuts use ctrl on Windows/Linux and meta (Cmd) on macOS
+ *
+ * Each shortcut maps an action name to its key combination.
+ * Set preventDefaultExceptions to false for actions that shouldn't prevent default.
  */
-export const SHORTCUTS = {
+export const DEFAULT_SHORTCUTS = {
   newNote:        { key: "n", ctrl: true },
   save:           { key: "s", ctrl: true },
   bold:           { key: "b", ctrl: true },
@@ -21,8 +24,12 @@ export const SHORTCUTS = {
   typewriterMode: { key: "\\", ctrl: true },
   textFormat:     { key: "m", ctrl: true },
   emojiPicker:    { key: "E", ctrl: true, shift: true },
-  help:           { key: "F1" }
+  help:           { key: "F1" },
+  closeDialogs:   { key: "Escape", preventDefault: false }
 }
+
+// Legacy export for backwards compatibility
+export const SHORTCUTS = DEFAULT_SHORTCUTS
 
 /**
  * Check if a keyboard event matches a shortcut definition
@@ -116,4 +123,73 @@ export function isMacOS() {
     return navigator.userAgentData.platform === "macOS"
   }
   return /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
+}
+
+/**
+ * Find which action matches a keyboard event
+ * @param {KeyboardEvent} event - The keyboard event
+ * @param {Object} shortcuts - Shortcuts object mapping action names to definitions
+ * @returns {string|null} - Action name if matched, null otherwise
+ */
+export function findMatchingAction(event, shortcuts) {
+  for (const [action, shortcut] of Object.entries(shortcuts)) {
+    if (matchShortcut(event, shortcut)) {
+      return action
+    }
+  }
+  return null
+}
+
+/**
+ * Create a keydown event handler from shortcuts
+ * @param {Object} shortcuts - Shortcuts object mapping action names to definitions
+ * @param {Function} actionHandler - Called with (actionName, event) when a shortcut matches
+ * @returns {Function} Event handler for keydown events
+ */
+export function createKeyHandler(shortcuts, actionHandler) {
+  return (event) => {
+    const action = findMatchingAction(event, shortcuts)
+
+    if (action) {
+      const shortcut = shortcuts[action]
+      // preventDefault unless explicitly disabled for this shortcut
+      if (shortcut.preventDefault !== false) {
+        event.preventDefault()
+      }
+      actionHandler(action, event)
+    }
+  }
+}
+
+/**
+ * Merge default shortcuts with user overrides
+ * User shortcuts take precedence. Set a shortcut to null to disable it.
+ * @param {Object} defaults - Default shortcuts
+ * @param {Object} userShortcuts - User-defined overrides
+ * @returns {Object} Merged shortcuts with null values filtered out
+ */
+export function mergeShortcuts(defaults, userShortcuts = {}) {
+  const merged = { ...defaults }
+
+  for (const [action, shortcut] of Object.entries(userShortcuts)) {
+    if (shortcut === null) {
+      // Remove the shortcut (allows disabling defaults)
+      delete merged[action]
+    } else {
+      // Override with user shortcut
+      merged[action] = shortcut
+    }
+  }
+
+  return merged
+}
+
+/**
+ * Get the shortcut definition for an action
+ * @param {Object} shortcuts - Shortcuts object
+ * @param {string} action - Action name
+ * @returns {Object|null} Shortcut definition or null
+ */
+export function getShortcutForAction(shortcuts, action) {
+  return shortcuts[action] || null
 }

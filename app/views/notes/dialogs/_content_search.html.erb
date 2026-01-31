@@ -39,12 +39,27 @@
       </div>
 
       <!-- Results List -->
-      <div
-        class="flex-1 overflow-y-auto min-h-[200px] max-h-[60vh]"
-        data-content-search-target="results"
-        data-action="mousemove->content-search#onMouseMove"
-      >
-        <!-- Results rendered by JavaScript -->
+      <div class="flex-1 overflow-y-auto min-h-[200px] max-h-[60vh] relative">
+        <!-- Loading Spinner -->
+        <div
+          data-content-search-target="spinner"
+          class="hidden absolute inset-0 flex items-center justify-center bg-[var(--theme-bg-primary)]/80 z-10"
+        >
+          <div class="flex flex-col items-center gap-2">
+            <svg class="animate-spin h-8 w-8 text-[var(--theme-accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm text-[var(--theme-text-muted)]"><%= t('status.searching') %></span>
+          </div>
+        </div>
+        <!-- Results -->
+        <div
+          data-content-search-target="results"
+          data-action="mousemove->content-search#onMouseMove"
+        >
+          <!-- Results rendered by JavaScript -->
+        </div>
       </div>
     </div>
   </dialog>

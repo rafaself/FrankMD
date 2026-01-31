@@ -15,6 +15,7 @@ describe("ContentSearchController", () => {
       <div data-controller="content-search">
         <dialog data-content-search-target="dialog"></dialog>
         <input data-content-search-target="input" type="text" />
+        <div data-content-search-target="spinner" class="hidden"></div>
         <div data-content-search-target="results"></div>
         <div data-content-search-target="status"></div>
       </div>
@@ -459,6 +460,93 @@ describe("ContentSearchController", () => {
         detail: { path: "test/path.md", lineNumber: 42 }
       })
       expect(closeSpy).toHaveBeenCalled()
+    })
+  })
+
+  describe("spinner", () => {
+    it("shows spinner when search starts", () => {
+      controller.showSpinner()
+
+      expect(controller.isSearching).toBe(true)
+      expect(controller.spinnerTarget.classList.contains("hidden")).toBe(false)
+    })
+
+    it("hides spinner when search completes", () => {
+      controller.spinnerTarget.classList.remove("hidden")
+      controller.isSearching = true
+
+      controller.hideSpinner()
+
+      expect(controller.isSearching).toBe(false)
+      expect(controller.spinnerTarget.classList.contains("hidden")).toBe(true)
+    })
+
+    it("shows spinner during onInput debounce", () => {
+      vi.useFakeTimers()
+      controller.inputTarget.value = "test query"
+
+      controller.onInput()
+
+      expect(controller.spinnerTarget.classList.contains("hidden")).toBe(false)
+      vi.useRealTimers()
+    })
+
+    it("hides spinner when input is cleared", () => {
+      controller.spinnerTarget.classList.remove("hidden")
+      controller.inputTarget.value = ""
+
+      controller.onInput()
+
+      expect(controller.spinnerTarget.classList.contains("hidden")).toBe(true)
+    })
+
+    it("hides spinner after performSearch completes", async () => {
+      controller.spinnerTarget.classList.remove("hidden")
+      controller.isSearching = true
+
+      await controller.performSearch("test")
+
+      expect(controller.spinnerTarget.classList.contains("hidden")).toBe(true)
+    })
+
+    it("hides spinner after performSearch fails", async () => {
+      global.fetch = vi.fn().mockRejectedValue(new Error("Network error"))
+      controller.spinnerTarget.classList.remove("hidden")
+      controller.isSearching = true
+
+      await controller.performSearch("test")
+
+      expect(controller.spinnerTarget.classList.contains("hidden")).toBe(true)
+    })
+  })
+
+  describe("updateSelection()", () => {
+    beforeEach(() => {
+      controller.searchResultsData = [
+        { path: "file1.md", name: "file1", line_number: 1, context: [] },
+        { path: "file2.md", name: "file2", line_number: 2, context: [] }
+      ]
+      controller.selectedIndex = 0
+      controller.renderResults()
+    })
+
+    it("updates selectedIndex", () => {
+      controller.updateSelection(1)
+      expect(controller.selectedIndex).toBe(1)
+    })
+
+    it("removes selection classes from old item", () => {
+      controller.updateSelection(1)
+
+      const oldItem = controller.resultsTarget.querySelector('[data-index="0"]')
+      expect(oldItem.classList.contains("bg-[var(--theme-accent)]")).toBe(false)
+    })
+
+    it("adds selection classes to new item", () => {
+      controller.updateSelection(1)
+
+      const newItem = controller.resultsTarget.querySelector('[data-index="1"]')
+      expect(newItem.classList.contains("bg-[var(--theme-accent)]")).toBe(true)
     })
   })
 })

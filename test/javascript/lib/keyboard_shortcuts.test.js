@@ -1,12 +1,17 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import {
   SHORTCUTS,
+  DEFAULT_SHORTCUTS,
   matchShortcut,
   formatShortcut,
-  isMacOS
+  isMacOS,
+  findMatchingAction,
+  createKeyHandler,
+  mergeShortcuts,
+  getShortcutForAction
 } from "../../../app/javascript/lib/keyboard_shortcuts"
 
 describe("SHORTCUTS", () => {
@@ -126,5 +131,160 @@ describe("formatShortcut", () => {
 describe("isMacOS", () => {
   it("returns a boolean", () => {
     expect(typeof isMacOS()).toBe("boolean")
+  })
+})
+
+describe("DEFAULT_SHORTCUTS", () => {
+  it("is an alias for SHORTCUTS", () => {
+    expect(DEFAULT_SHORTCUTS).toBe(SHORTCUTS)
+  })
+
+  it("includes closeDialogs with preventDefault disabled", () => {
+    expect(DEFAULT_SHORTCUTS.closeDialogs).toEqual({
+      key: "Escape",
+      preventDefault: false
+    })
+  })
+})
+
+describe("findMatchingAction", () => {
+  function createEvent(key, { ctrl = false, shift = false, alt = false, meta = false } = {}) {
+    return {
+      key,
+      ctrlKey: ctrl,
+      shiftKey: shift,
+      altKey: alt,
+      metaKey: meta
+    }
+  }
+
+  it("returns action name when shortcut matches", () => {
+    const event = createEvent("s", { ctrl: true })
+    expect(findMatchingAction(event, DEFAULT_SHORTCUTS)).toBe("save")
+  })
+
+  it("returns null when no shortcut matches", () => {
+    const event = createEvent("x", { ctrl: true })
+    expect(findMatchingAction(event, DEFAULT_SHORTCUTS)).toBeNull()
+  })
+
+  it("matches shift+ctrl shortcuts correctly", () => {
+    const event = createEvent("V", { ctrl: true, shift: true })
+    expect(findMatchingAction(event, DEFAULT_SHORTCUTS)).toBe("togglePreview")
+  })
+
+  it("matches Escape key", () => {
+    const event = createEvent("Escape")
+    expect(findMatchingAction(event, DEFAULT_SHORTCUTS)).toBe("closeDialogs")
+  })
+})
+
+describe("createKeyHandler", () => {
+  function createEvent(key, { ctrl = false, shift = false, alt = false, meta = false } = {}) {
+    return {
+      key,
+      ctrlKey: ctrl,
+      shiftKey: shift,
+      altKey: alt,
+      metaKey: meta,
+      preventDefault: vi.fn()
+    }
+  }
+
+  it("calls action handler when shortcut matches", () => {
+    const handler = vi.fn()
+    const keyHandler = createKeyHandler(DEFAULT_SHORTCUTS, handler)
+    const event = createEvent("s", { ctrl: true })
+
+    keyHandler(event)
+
+    expect(handler).toHaveBeenCalledWith("save", event)
+  })
+
+  it("calls preventDefault by default", () => {
+    const handler = vi.fn()
+    const keyHandler = createKeyHandler(DEFAULT_SHORTCUTS, handler)
+    const event = createEvent("s", { ctrl: true })
+
+    keyHandler(event)
+
+    expect(event.preventDefault).toHaveBeenCalled()
+  })
+
+  it("does not call preventDefault when disabled for shortcut", () => {
+    const handler = vi.fn()
+    const keyHandler = createKeyHandler(DEFAULT_SHORTCUTS, handler)
+    const event = createEvent("Escape")
+
+    keyHandler(event)
+
+    expect(event.preventDefault).not.toHaveBeenCalled()
+    expect(handler).toHaveBeenCalledWith("closeDialogs", event)
+  })
+
+  it("does not call handler when no match", () => {
+    const handler = vi.fn()
+    const keyHandler = createKeyHandler(DEFAULT_SHORTCUTS, handler)
+    const event = createEvent("x", { ctrl: true })
+
+    keyHandler(event)
+
+    expect(handler).not.toHaveBeenCalled()
+    expect(event.preventDefault).not.toHaveBeenCalled()
+  })
+})
+
+describe("mergeShortcuts", () => {
+  it("returns defaults when no user shortcuts provided", () => {
+    const merged = mergeShortcuts(DEFAULT_SHORTCUTS)
+    expect(merged).toEqual(DEFAULT_SHORTCUTS)
+  })
+
+  it("overrides defaults with user shortcuts", () => {
+    const userShortcuts = {
+      save: { key: "w", ctrl: true }
+    }
+    const merged = mergeShortcuts(DEFAULT_SHORTCUTS, userShortcuts)
+
+    expect(merged.save).toEqual({ key: "w", ctrl: true })
+    expect(merged.bold).toEqual(DEFAULT_SHORTCUTS.bold) // Other shortcuts unchanged
+  })
+
+  it("removes shortcuts set to null", () => {
+    const userShortcuts = {
+      save: null
+    }
+    const merged = mergeShortcuts(DEFAULT_SHORTCUTS, userShortcuts)
+
+    expect(merged.save).toBeUndefined()
+    expect(merged.bold).toBeDefined()
+  })
+
+  it("adds new shortcuts from user config", () => {
+    const userShortcuts = {
+      customAction: { key: "q", ctrl: true, shift: true }
+    }
+    const merged = mergeShortcuts(DEFAULT_SHORTCUTS, userShortcuts)
+
+    expect(merged.customAction).toEqual({ key: "q", ctrl: true, shift: true })
+  })
+
+  it("does not mutate original defaults", () => {
+    const defaults = { save: { key: "s", ctrl: true } }
+    const userShortcuts = { save: null }
+
+    mergeShortcuts(defaults, userShortcuts)
+
+    expect(defaults.save).toEqual({ key: "s", ctrl: true })
+  })
+})
+
+describe("getShortcutForAction", () => {
+  it("returns shortcut definition for known action", () => {
+    expect(getShortcutForAction(DEFAULT_SHORTCUTS, "save")).toEqual({ key: "s", ctrl: true })
+  })
+
+  it("returns null for unknown action", () => {
+    expect(getShortcutForAction(DEFAULT_SHORTCUTS, "unknownAction")).toBeNull()
   })
 })

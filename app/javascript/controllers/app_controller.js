@@ -13,6 +13,11 @@ import {
   getPositionForLine
 } from "lib/text_editor_utils"
 import { calculateScrollForLine } from "lib/scroll_utils"
+import {
+  DEFAULT_SHORTCUTS,
+  createKeyHandler,
+  mergeShortcuts
+} from "lib/keyboard_shortcuts"
 
 export default class extends Controller {
   static targets = [
@@ -1665,116 +1670,55 @@ export default class extends Controller {
 
   // === Keyboard Shortcuts ===
   setupKeyboardShortcuts() {
-    this.boundKeydownHandler = (event) => {
-      // Ctrl/Cmd + N: New note (delegate to file-operations controller)
-      if ((event.ctrlKey || event.metaKey) && event.key === "n") {
-        event.preventDefault()
-        const fileOps = this.getFileOperationsController()
-        if (fileOps) fileOps.newNote()
-      }
+    // Merge default shortcuts with user customizations (future: load from config)
+    const shortcuts = mergeShortcuts(DEFAULT_SHORTCUTS, this.userShortcuts)
 
-      // Ctrl/Cmd + S: Save
-      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
-        event.preventDefault()
-        this.saveNow()
-      }
+    this.boundKeydownHandler = createKeyHandler(shortcuts, (action) => {
+      this.executeShortcutAction(action)
+    })
 
-      // Ctrl/Cmd + Shift + V: Toggle preview (VSCode-style)
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "V") {
-        event.preventDefault()
-        this.togglePreview()
-      }
-
-      // Ctrl/Cmd + F: Find in file
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "f") {
-        event.preventDefault()
-        this.openFindReplace()
-      }
-
-      // Ctrl/Cmd + H: Find and Replace (VSCode-style)
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "h") {
-        event.preventDefault()
-        this.openFindReplace({ tab: "replace" })
-      }
-
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "g") {
-        event.preventDefault()
-        this.openJumpToLine()
-      }
-
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "l") {
-        event.preventDefault()
-        this.toggleLineNumberMode()
-      }
-
-      // Ctrl/Cmd + Shift + F: Content search
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "F") {
-        event.preventDefault()
-        this.openContentSearch()
-      }
-
-      // Ctrl/Cmd + P: Open file finder
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "p") {
-        event.preventDefault()
-        this.openFileFinder()
-      }
-
-      // Ctrl/Cmd + E: Toggle explorer/sidebar
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "e") {
-        event.preventDefault()
-        this.toggleSidebar()
-      }
-
-      // Ctrl/Cmd + B: Bold (VSCode-style)
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "b") {
-        event.preventDefault()
-        this.applyInlineFormat("bold")
-      }
-
-      // Ctrl/Cmd + I: Italic (VSCode-style)
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "i") {
-        event.preventDefault()
-        this.applyInlineFormat("italic")
-      }
-
-      // Ctrl/Cmd + \: Toggle typewriter mode
-      if ((event.ctrlKey || event.metaKey) && event.key === "\\") {
-        event.preventDefault()
-        this.toggleTypewriterMode()
-      }
-
-      // Escape: Close menus and dialogs managed by app_controller
-      if (event.key === "Escape") {
-        // Close context menu (delegated to file-operations controller via target)
-        if (this.hasContextMenuTarget) {
-          this.contextMenuTarget.classList.add("hidden")
-        }
-
-        // Close help dialog
-        if (this.hasHelpDialogTarget && this.helpDialogTarget.open) {
-          this.helpDialogTarget.close()
-        }
-      }
-
-      // F1: Open help
-      if (event.key === "F1") {
-        event.preventDefault()
-        this.openHelp()
-      }
-
-      // Ctrl/Cmd + M: Open text format menu
-      if ((event.ctrlKey || event.metaKey) && event.key === "m") {
-        event.preventDefault()
-        this.openTextFormatMenu()
-      }
-
-      // Ctrl/Cmd + Shift + E: Open emoji picker
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "E") {
-        event.preventDefault()
-        this.openEmojiPicker()
-      }
-    }
     document.addEventListener("keydown", this.boundKeydownHandler)
+  }
+
+  // Execute an action triggered by a keyboard shortcut
+  executeShortcutAction(action) {
+    const actions = {
+      newNote: () => this.getFileOperationsController()?.newNote(),
+      save: () => this.saveNow(),
+      bold: () => this.applyInlineFormat("bold"),
+      italic: () => this.applyInlineFormat("italic"),
+      togglePreview: () => this.togglePreview(),
+      findInFile: () => this.openFindReplace(),
+      findReplace: () => this.openFindReplace({ tab: "replace" }),
+      jumpToLine: () => this.openJumpToLine(),
+      lineNumbers: () => this.toggleLineNumberMode(),
+      contentSearch: () => this.openContentSearch(),
+      fileFinder: () => this.openFileFinder(),
+      toggleSidebar: () => this.toggleSidebar(),
+      typewriterMode: () => this.toggleTypewriterMode(),
+      textFormat: () => this.openTextFormatMenu(),
+      emojiPicker: () => this.openEmojiPicker(),
+      help: () => this.openHelp(),
+      closeDialogs: () => this.closeAllDialogs()
+    }
+
+    const handler = actions[action]
+    if (handler) {
+      handler()
+    }
+  }
+
+  // Close all open dialogs and menus
+  closeAllDialogs() {
+    // Close context menu
+    if (this.hasContextMenuTarget) {
+      this.contextMenuTarget.classList.add("hidden")
+    }
+
+    // Close help dialog
+    if (this.hasHelpDialogTarget && this.helpDialogTarget.open) {
+      this.helpDialogTarget.close()
+    }
   }
 
   // === Editor Indentation ===
