@@ -1,10 +1,10 @@
 pt-BR:
-  # Metadados da aplicacao
+  # Metadados da aplicação
   app:
     name: "FrankMD"
     tagline: "Um editor markdown moderno para suas notas"
 
-  # Acoes comuns usadas no app
+  # Ações comuns usadas no app
   common:
     cancel: "Cancelar"
     apply: "Aplicar"
@@ -21,18 +21,18 @@ pt-BR:
   # Idiomas
   languages:
     en: "English"
-    pt_BR: "Portugues (Brasil)"
+    pt_BR: "Português (Brasil)"
 
-  # Secao do cabecalho
+  # Seção do cabeçalho
   header:
     toggle_explorer: "Alternar Explorador (Ctrl+E)"
-    toggle_typewriter: "Alternar Modo Maquina de Escrever (Ctrl+B)"
-    toggle_preview: "Alternar Visualizacao (Ctrl+Shift+P)"
+    toggle_typewriter: "Alternar Modo Máquina de Escrever (Ctrl+B)"
+    toggle_preview: "Alternar Visualização (Ctrl+Shift+P)"
     change_theme: "Alterar Tema"
     change_language: "Alterar Idioma"
     about_app: "Sobre FrankMD"
 
-  # Secao da barra lateral/explorador
+  # Seção da barra lateral/explorador
   sidebar:
     explorer: "Explorador"
     new_note: "Nova Nota (Ctrl+N)"
@@ -41,13 +41,13 @@ pt-BR:
     search_in_files: "Buscar em Arquivos (Ctrl+Shift+F)"
     no_notes_yet: "Nenhuma nota ainda"
     no_files_found: "Nenhum arquivo encontrado"
-    # Estatisticas do documento
+    # Estatísticas do documento
     words: "Palavras"
     characters: "Caracteres"
     size: "Tamanho"
     read_time: "Tempo de leitura"
 
-  # Secao do editor
+  # Seção do editor
   editor:
     select_note: "Selecione ou crie uma nota"
     select_note_description: "Selecione uma nota para editar"
@@ -62,21 +62,21 @@ pt-BR:
       table_title: "Inserir/Editar Tabela"
       image: "Imagem"
       image_title: "Inserir Imagem"
-      video: "Video"
-      video_title: "Inserir Video"
-      code: "Codigo"
-      code_title: "Inserir/Editar Bloco de Codigo"
+      video: "Vídeo"
+      video_title: "Inserir Vídeo"
+      code: "Código"
+      code_title: "Inserir/Editar Bloco de Código"
       font: "Fonte"
-      font_title: "Configuracoes do Editor"
+      font_title: "Configurações do Editor"
       ai: "IA"
-      ai_title: "Verificacao Gramatical IA"
+      ai_title: "Verificação Gramatical com IA"
     # Overlay de processamento IA
     processing_with: "Processando com"
     press_esc_to_cancel: "Pressione ESC para cancelar"
 
-  # Painel de visualizacao
+  # Painel de visualização
   preview:
-    title: "Visualizacao"
+    title: "Visualização"
     zoom_in: "Aumentar Zoom"
     zoom_out: "Diminuir Zoom"
 
@@ -89,31 +89,31 @@ pt-BR:
   # Mensagens de status
   status:
     saved: "Salvo"
-    unsaved: "Alteracoes nao salvas"
+    unsaved: "Alterações não salvas"
     error_saving: "Erro ao salvar"
     error_loading: "Erro ao carregar nota"
     searching: "Buscando..."
     no_matches: "Nenhum resultado encontrado"
     search_error: "Erro na busca"
     matches_found: "%{count} resultados em %{files} arquivos"
-    config_applied: "Configuracao aplicada"
-    found_videos: "Encontrados %{count} videos - clique para inserir ou use as setas"
+    config_applied: "Configuração aplicada"
+    found_videos: "Encontrados %{count} vídeos - clique para inserir ou use as setas"
     please_enter_keywords: "Por favor, digite palavras-chave"
-    youtube_not_configured_js: "API do YouTube nao configurada. Defina a variavel YOUTUBE_API_KEY."
-    no_videos_found: "Nenhum video encontrado"
+    youtube_not_configured_js: "API do YouTube não configurada. Defina a variável YOUTUBE_API_KEY."
+    no_videos_found: "Nenhum vídeo encontrado"
     search_failed_retry: "Falha na busca. Tente novamente."
     enter_keywords_search: "Digite palavras-chave e clique em Buscar ou pressione Enter"
-    type_to_search_regex: "Digite para buscar no conteudo dos arquivos (suporta regex)"
+    type_to_search_regex: "Digite para buscar no conteúdo dos arquivos (suporta regex)"
     processing: "Processando..."
 
-  # Titulos e conteudo dos dialogos
+  # Títulos e conteúdo dos diálogos
   dialogs:
-    # Dialogo de renomear
+    # Diálogo de renomear
     rename:
       title: "Renomear"
       placeholder: "Novo nome"
 
-    # Dialogo de novo item
+    # Diálogo de novo item
     new_item:
       new_note: "Nova Nota"
       new_folder: "Nova Pasta"
@@ -121,7 +121,7 @@ pt-BR:
       note_placeholder: "Nome da nota"
       folder_placeholder: "Nome da pasta"
 
-    # Dialogo de tipo de nota
+    # Diálogo de tipo de nota
     note_type:
       title: "Nova Nota"
       empty_document: "Documento Vazio"
@@ -130,7 +130,7 @@ pt-BR:
       hugo_description: "AAAA/MM/DD/slug/index.md"
       new_hugo_post: "Novo Post Hugo Blog"
 
-    # Dialogo do editor de tabela
+    # Diálogo do editor de tabela
     table_editor:
       title: "Editor de Tabela"
       add_column: "Adicionar Coluna"
@@ -139,51 +139,51 @@ pt-BR:
       remove_row: "Remover Linha"
       column: "Coluna"
       row: "Linha"
-      move_left: "Mover Esquerda"
-      move_right: "Mover Direita"
-      move_up: "Mover Cima"
-      move_down: "Mover Baixo"
+      move_left: "Mover para Esquerda"
+      move_right: "Mover para Direita"
+      move_up: "Mover para Cima"
+      move_down: "Mover para Baixo"
       delete_column: "Excluir Coluna"
       delete_row: "Excluir Linha"
       insert_table: "Inserir Tabela"
-      header: "Cabecalho"
-      header_n: "Cabecalho %{n}"
+      header: "Cabeçalho"
+      header_n: "Cabeçalho %{n}"
 
-    # Dialogo de codigo
+    # Diálogo de código
     code:
-      title: "Bloco de Codigo"
+      title: "Bloco de Código"
       language_label: "Linguagem (Tab para autocompletar)"
       language_placeholder: "javascript, python, ruby..."
-      code_label: "Codigo (opcional) — Tab para indentar, Ctrl+Enter para inserir"
+      code_label: "Código (opcional) — Tab para indentar, Ctrl+Enter para inserir"
       use_tabs: "Usar tabs"
-      code_placeholder: "Cole ou digite seu codigo aqui..."
-      insert_code: "Inserir Codigo"
-      unrecognized_language: "\"%{language}\" nao e uma linguagem reconhecida. Inserir mesmo assim?"
+      code_placeholder: "Cole ou digite seu código aqui..."
+      insert_code: "Inserir Código"
+      unrecognized_language: "\"%{language}\" não é uma linguagem reconhecida. Inserir mesmo assim?"
 
-    # Dialogo de video
+    # Diálogo de vídeo
     video:
-      title: "Inserir Video"
+      title: "Inserir Vídeo"
       tab_url: "URL / Arquivo"
       tab_search: "Busca YouTube"
-      url_label: "URL ou Caminho do Video"
-      url_placeholder: "URL do YouTube ou caminho do arquivo de video..."
+      url_label: "URL ou Caminho do Vídeo"
+      url_placeholder: "URL do YouTube ou caminho do arquivo de vídeo..."
       url_hint_youtube: "YouTube: https://youtube.com/watch?v=... ou https://youtu.be/..."
-      url_hint_file: "Arquivo de video: /caminho/para/video.mp4, .webm, .mkv, .mov, .avi"
-      preview_hint: "Digite uma URL para ver a visualizacao"
-      insert_video: "Inserir Video"
+      url_hint_file: "Arquivo de vídeo: /caminho/para/video.mp4, .webm, .mkv, .mov, .avi"
+      preview_hint: "Digite uma URL para ver a visualização"
+      insert_video: "Inserir Vídeo"
       # Busca YouTube
-      youtube_api_required: "Chave da API YouTube Necessaria"
-      youtube_api_description: "Para buscar videos do YouTube, voce precisa configurar uma chave da API YouTube Data."
-      quick_setup: "Configuracao rapida:"
+      youtube_api_required: "Chave da API YouTube Necessária"
+      youtube_api_description: "Para buscar vídeos do YouTube, você precisa configurar uma chave da API YouTube Data."
+      quick_setup: "Configuração rápida:"
       setup_step_1: "Edite o arquivo .fed na sua pasta de notas"
       setup_step_2: "Adicione: youtube_api_key = SUA_CHAVE"
-      view_setup_instructions: "Ver instrucoes completas no GitHub"
+      view_setup_instructions: "Ver instruções completas no GitHub"
       search_youtube: "Buscar YouTube"
       search_placeholder: "Digite palavras-chave..."
       search_status: "Digite palavras-chave e clique em Buscar ou pressione Enter"
-      no_videos_found: "Nenhum video encontrado"
+      no_videos_found: "Nenhum vídeo encontrado"
 
-    # Dialogo do seletor de imagens
+    # Diálogo do seletor de imagens
     image_picker:
       title: "Inserir Imagem"
       tab_local: "Local"
@@ -196,26 +196,26 @@ pt-BR:
       selected: "Selecionado:"
       alt_label: "Texto Alternativo (opcional)"
       alt_placeholder: "Descreva a imagem..."
-      link_label: "URL do Link (opcional, torna a imagem clicavel)"
+      link_label: "URL do Link (opcional, torna a imagem clicável)"
       link_placeholder: "https://..."
       uploading_to_s3: "Enviando para S3..."
       # Imagens locais
-      local_path_required: "Caminho de Imagens Locais Necessario"
-      local_path_description: "Para navegar em imagens locais, configure um diretorio de imagens."
+      local_path_required: "Caminho de Imagens Locais Necessário"
+      local_path_description: "Para navegar em imagens locais, configure um diretório de imagens."
       local_setup_step_1: "Edite .fed na sua pasta de notas"
       local_setup_step_2: "Adicione: images_path = /caminho/para/imagens"
       search_images_placeholder: "Buscar imagens por nome..."
       # Imagens de pasta
-      filesystem_api_required: "API de Acesso ao Sistema de Arquivos Necessaria"
+      filesystem_api_required: "API de Acesso ao Sistema de Arquivos Necessária"
       filesystem_api_description: "Este recurso requer a API de Acesso ao Sistema de Arquivos, que pode estar desabilitada no seu navegador."
       enable_in_brave: "Para habilitar no Brave:"
-      brave_step_1: "Va para brave://flags"
+      brave_step_1: "Vá para brave://flags"
       brave_step_2: "Busque por File System Access API"
       brave_step_3: "Defina como Enabled"
       brave_step_4: "Reinicie seu navegador"
       supported_browsers: "Navegadores suportados:"
       supported_browsers_list: "Chrome 86+, Edge 86+, Opera 72+, Brave (com flag)"
-      not_supported_note: "Firefox e Safari nao suportam esta API."
+      not_supported_note: "Firefox e Safari não suportam esta API."
       select_folder_prompt: "Selecione uma pasta do seu computador para navegar em imagens"
       browse_folder: "Selecionar Pasta..."
       no_folder_selected: "Nenhuma pasta selecionada"
@@ -224,39 +224,39 @@ pt-BR:
       search_web_placeholder: "Buscar imagens na web..."
       search_status: "Digite palavras-chave e clique em Buscar ou pressione Enter"
       # Imagens Google
-      google_api_required: "Configuracao da API Google Necessaria"
-      google_api_description: "Para buscar no Google Imagens, voce precisa configurar uma chave API do Google e um ID do Custom Search Engine."
+      google_api_required: "Configuração da API Google Necessária"
+      google_api_description: "Para buscar no Google Imagens, você precisa configurar uma chave API do Google e um ID do Custom Search Engine."
       google_setup_step_2: "Adicione: google_api_key = SUA_CHAVE"
       google_setup_step_3: "Adicione: google_cse_id = SEU_CSE_ID"
       search_google_placeholder: "Buscar Google Imagens..."
       # Pinterest
       search_pinterest_placeholder: "Buscar Pinterest..."
       # Gerar IA
-      gemini_api_required: "Chave da API Gemini Necessaria"
-      gemini_api_description: "A geracao de imagens por IA usa os modelos Imagen do Google e requer uma chave da API Gemini."
+      gemini_api_required: "Chave da API Gemini Necessária"
+      gemini_api_description: "A geração de imagens por IA usa os modelos Imagen do Google e requer uma chave da API Gemini."
       gemini_setup_step_1: "Obtenha uma chave de API em aistudio.google.com"
       gemini_setup_step_2: "Edite .fed na sua pasta de notas"
       gemini_setup_step_3: "Adicione: gemini_api_key = SUA_CHAVE"
       model_label: "Modelo:"
-      reference_image_label: "Imagem de referencia (opcional) - guia a geracao com uma imagem existente"
-      remove_reference: "Remover referencia"
-      search_reference_placeholder: "Buscar imagens de referencia..."
+      reference_image_label: "Imagem de referência (opcional) - guia a geração com uma imagem existente"
+      remove_reference: "Remover referência"
+      search_reference_placeholder: "Buscar imagens de referência..."
       prompt_label: "Descreva a imagem que deseja gerar"
-      prompt_placeholder: "Uma imagem fotorrealista de uma paisagem montanhosa ao por do sol com nuvens dramaticas..."
+      prompt_placeholder: "Uma imagem fotorrealista de uma paisagem montanhosa ao pôr do sol com nuvens dramáticas..."
       generate_image: "Gerar Imagem"
       generating_with: "Gerando imagem com"
       generated_image: "Imagem Gerada"
       revised_prompt: "Prompt revisado pela IA"
       save_to: "Salvar em:"
-      save_local: "diretorio notes/images/"
+      save_local: "diretório notes/images/"
       save_s3: "AWS S3"
 
-    # Opcao S3
+    # Opção S3
     s3_option:
       upload_to_s3: "Enviar para AWS S3"
       reupload_to_s3: "Baixar e reenviar para AWS S3"
-      upload_description: "A imagem sera enviada para o S3 e a URL sera usada em vez do caminho local"
-      reupload_description: "A imagem sera baixada e enviada para seu S3, usando sua URL em vez da original"
+      upload_description: "A imagem será enviada para o S3 e a URL será usada em vez do caminho local"
+      reupload_description: "A imagem será baixada e enviada para seu S3, usando sua URL em vez da original"
       resize: "Redimensionar:"
       none: "Nenhum (tamanho original)"
       quarter_size: "1/4 do tamanho (25%)"
@@ -264,98 +264,98 @@ pt-BR:
       two_thirds_size: "2/3 do tamanho (67%)"
       compress: "+ comprimir"
 
-    # Dialogo de ajuda
+    # Diálogo de ajuda
     help:
-      title: "Guia Rapido Markdown"
+      title: "Guia Rápido Markdown"
       toggle_hint: "Pressione F1 ou Ctrl+H para alternar"
-      headings: "Titulos"
-      emphasis: "Enfase"
+      headings: "Títulos"
+      emphasis: "Ênfase"
       lists: "Listas"
       task_list: "Lista de Tarefas"
       links_images: "Links e Imagens"
-      blockquote: "Citacao"
-      code_block: "Bloco de Codigo"
+      blockquote: "Citação"
+      code_block: "Bloco de Código"
       table: "Tabela"
       horizontal_rule: "Linha Horizontal"
       keyboard_shortcuts: "Atalhos de Teclado:"
-      shortcuts_list: "Ctrl+S salvar, Ctrl+N nova nota, Ctrl+P buscar arquivo, Ctrl+Shift+F buscar conteudo, Ctrl+E explorador, Ctrl+B maquina de escrever, Ctrl+Shift+P visualizacao, F1 ajuda"
+      shortcuts_list: "Ctrl+S salvar, Ctrl+N nova nota, Ctrl+P buscar arquivo, Ctrl+Shift+F buscar conteúdo, Ctrl+E explorador, Ctrl+B máquina de escrever, Ctrl+Shift+P visualização, F1 ajuda"
 
-    # Dialogo de personalizacao (configuracoes do editor)
+    # Diálogo de personalização (configurações do editor)
     customize:
-      title: "Configuracoes do Editor"
-      font_family: "Familia da Fonte"
+      title: "Configurações do Editor"
+      font_family: "Família da Fonte"
       font_size: "Tamanho da Fonte"
-      preview: "Visualizacao"
+      preview: "Visualização"
 
-    # Dialogo sobre
+    # Diálogo sobre
     about:
       description: "Um editor markdown moderno para suas notas"
       copyright: "Todos os direitos reservados."
       view_github: "Ver no GitHub"
 
-    # Dialogo de diff IA
+    # Diálogo de diff IA
     ai_diff:
-      title: "Verificacao Gramatical IA"
-      config_required: "Configuracao de IA Necessaria"
+      title: "Verificação Gramatical com IA"
+      config_required: "Configuração de IA Necessária"
       config_description: "Configure um dos seguintes provedores no seu arquivo .fed."
       priority_note: "Prioridade (modo auto): Ollama → OpenRouter → Anthropic → Gemini → OpenAI"
       ollama_title: "Ollama (Local, Gratuito)"
-      ollama_description: "Execute IA localmente na sua maquina:"
+      ollama_description: "Execute IA localmente na sua máquina:"
       openrouter_title: "OpenRouter"
-      openrouter_description: "Acesse multiplos provedores de IA:"
+      openrouter_description: "Acesse múltiplos provedores de IA:"
       anthropic_title: "Anthropic (Claude)"
       anthropic_description: "Use modelos Claude:"
       gemini_title: "Google Gemini"
       gemini_description: "Use modelos Gemini:"
       openai_title: "OpenAI"
       openai_description: "Use modelos GPT:"
-      provider_selection: "Selecao de Provedor"
-      provider_override: "Sobrescrever auto-deteccao:"
+      provider_selection: "Seleção de Provedor"
+      provider_override: "Sobrescrever auto-detecção:"
       original: "Original"
-      deletions_hint: "(exclusoes em vermelho)"
+      deletions_hint: "(exclusões em vermelho)"
       corrected: "Corrigido"
-      additions_hint: "(adicoes em verde)"
-      accept_changes: "Aceitar Alteracoes"
+      additions_hint: "(adições em verde)"
+      accept_changes: "Aceitar Alterações"
 
-    # Dialogo de busca de arquivo
+    # Diálogo de busca de arquivo
     file_finder:
       placeholder: "Digite para buscar arquivos..."
       esc_to_close: "esc para fechar"
 
-    # Dialogo de busca de conteudo
+    # Diálogo de busca de conteúdo
     content_search:
       placeholder: "Buscar em arquivos (suporta regex)..."
-      status: "Digite para buscar no conteudo dos arquivos (suporta regex)"
+      status: "Digite para buscar no conteúdo dos arquivos (suporta regex)"
       literal_text: "texto literal"
       or_operator: "OU"
       one_or_more: "um ou mais"
       any_chars: "qualquer caractere"
-      start_of_line: "inicio da linha"
+      start_of_line: "início da linha"
       end_of_line: "fim da linha"
-      digits: "digitos"
+      digits: "dígitos"
       whole_word: "palavra inteira"
 
   # Mensagens de erro
   errors:
-    note_not_found: "Nota nao encontrada"
-    note_already_exists: "Nota ja existe"
-    note_is_empty: "A nota esta vazia"
-    folder_not_found: "Pasta nao encontrada"
-    folder_already_exists: "Pasta ja existe"
-    file_not_found: "Este arquivo nao existe mais ou foi excluido."
+    note_not_found: "Nota não encontrada"
+    note_already_exists: "Nota já existe"
+    note_is_empty: "A nota está vazia"
+    folder_not_found: "Pasta não encontrada"
+    folder_already_exists: "Pasta já existe"
+    file_not_found: "Este arquivo não existe mais ou foi excluído."
     no_file_open: "Nenhum arquivo aberto"
     no_text_to_check: "Nenhum texto para verificar"
     no_file_provided: "Nenhum caminho de arquivo fornecido"
     no_image_data: "Nenhum dado de imagem fornecido"
     no_prompt_provided: "Nenhum prompt fornecido"
     no_file_upload: "Nenhum arquivo fornecido"
-    query_required: "Consulta e obrigatoria"
-    url_required: "URL e obrigatoria"
-    s3_not_configured: "S3 nao configurado"
-    images_not_configured: "Imagens nao configuradas"
-    youtube_not_configured: "Chave da API YouTube nao configurada"
-    google_not_configured: "Google Custom Search nao configurado"
-    no_valid_settings: "Nenhuma configuracao valida fornecida"
+    query_required: "Consulta é obrigatória"
+    url_required: "URL é obrigatória"
+    s3_not_configured: "S3 não configurado"
+    images_not_configured: "Imagens não configuradas"
+    youtube_not_configured: "Chave da API YouTube não configurada"
+    google_not_configured: "Google Custom Search não configurado"
+    no_valid_settings: "Nenhuma configuração válida fornecida"
     upload_failed: "Falha no envio"
     search_failed: "Falha na busca"
     failed_to_move: "Falha ao mover"
@@ -367,18 +367,18 @@ pt-BR:
     failed_to_upload: "Falha ao enviar"
     failed_to_process_ai: "Falha ao processar texto com IA"
 
-  # Mensagens de confirmacao
+  # Mensagens de confirmação
   confirm:
     delete_note: "Tem certeza que deseja excluir esta nota?"
-    delete_folder: "Tem certeza que deseja excluir esta pasta e todo seu conteudo?"
+    delete_folder: "Tem certeza que deseja excluir esta pasta e todo seu conteúdo?"
 
   # Mensagens de sucesso
   success:
     note_created: "Nota criada"
     note_saved: "Nota salva"
-    note_deleted: "Nota excluida"
+    note_deleted: "Nota excluída"
     note_renamed: "Nota renomeada"
     folder_created: "Pasta criada"
-    folder_deleted: "Pasta excluida"
+    folder_deleted: "Pasta excluída"
     folder_renamed: "Pasta renomeada"
-    settings_saved: "Configuracoes salvas"
+    settings_saved: "Configurações salvas"
