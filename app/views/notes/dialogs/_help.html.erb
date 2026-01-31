@@ -11,15 +11,7 @@
         <h3 class="text-lg font-semibold"><%= t('dialogs.help.title') %></h3>
         <div class="flex items-center gap-2">
           <span class="text-xs text-[var(--theme-text-muted)]"><%= t('dialogs.help.toggle_hint') %></span>
-          <button
-            type="button"
-            data-action="click->help#closeHelp"
-            class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <%= render "shared/dialog_close_button", action: "click->help#closeHelp", size: "w-5 h-5" %>
         </div>
       </div>
 
@@ -336,15 +328,7 @@
     <div class="p-6 text-[var(--theme-text-primary)]">
       <!-- Close button -->
       <div class="flex justify-end mb-2">
-        <button
-          type="button"
-          data-action="click->help#closeAbout"
-          class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <%= render "shared/dialog_close_button", action: "click->help#closeAbout" %>
       </div>
 
       <!-- Logo -->

@@ -6,18 +6,7 @@
     data-code-dialog-target="dialog"
   >
     <div class="p-4 text-[var(--theme-text-primary)]">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-semibold"><%= t('dialogs.code.title') %></h3>
-        <button
-          type="button"
-          data-action="click->code-dialog#close"
-          class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      <%= render "shared/dialog_header", title: t('dialogs.code.title'), close_action: "click->code-dialog#close", margin_bottom: "mb-4" %>
 
       <!-- Language Input with Autocomplete -->
       <div class="mb-4 relative">
@@ -64,20 +53,8 @@
 
       <!-- Footer -->
       <div class="flex justify-end gap-2">
-        <button
-          type="button"
-          data-action="click->code-dialog#close"
-          class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-        >
-          <%= t('common.cancel') %>
-        </button>
-        <button
-          type="button"
-          data-action="click->code-dialog#insert"
-          class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)]"
-        >
-          <%= t('dialogs.code.insert_code') %>
-        </button>
+        <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->code-dialog#close" %>
+        <%= render "shared/button_primary", label: t('dialogs.code.insert_code'), action: "click->code-dialog#insert" %>
       </div>
     </div>
   </dialog>

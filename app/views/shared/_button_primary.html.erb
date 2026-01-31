@@ -1,0 +1,13 @@
+<%# Primary action button
+   Parameters:
+   - label: Button text (required)
+   - type: 'button' or 'submit' (default: 'button')
+   - action: Stimulus action string (optional)
+   - disabled: Boolean (optional)
+%>
+<button
+  type="<%= local_assigns[:type] || 'button' %>"
+  <% if local_assigns[:action] %>data-action="<%= action %>"<% end %>
+  <% if local_assigns[:disabled] %>disabled<% end %>
+  class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+><%= label %></button>

@@ -136,20 +136,8 @@
       <div class="flex items-center justify-between mt-4">
         <span class="text-xs text-[var(--theme-text-muted)]" data-table-editor-target="size">3 x 3</span>
         <div class="flex gap-2">
-          <button
-            type="button"
-            data-action="click->table-editor#close"
-            class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-          >
-            <%= t('common.cancel') %>
-          </button>
-          <button
-            type="button"
-            data-action="click->table-editor#insert"
-            class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)]"
-          >
-            <%= t('dialogs.table_editor.insert_table') %>
-          </button>
+          <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->table-editor#close" %>
+          <%= render "shared/button_primary", label: t('dialogs.table_editor.insert_table'), action: "click->table-editor#insert" %>
         </div>
       </div>
     </div>

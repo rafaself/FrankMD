@@ -11,19 +11,8 @@
       placeholder="<%= t('dialogs.rename.placeholder') %>"
     >
     <div class="flex justify-end gap-2 mt-4">
-      <button
-        type="button"
-        data-action="click->app#closeRenameDialog"
-        class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-      >
-        <%= t('common.cancel') %>
-      </button>
-      <button
-        type="submit"
-        class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)]"
-      >
-        <%= t('common.rename') %>
-      </button>
+      <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->app#closeRenameDialog" %>
+      <%= render "shared/button_primary", label: t('common.rename'), type: "submit" %>
     </div>
   </form>
 </dialog>

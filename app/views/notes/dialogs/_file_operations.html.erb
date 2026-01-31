@@ -55,20 +55,8 @@
         placeholder="<%= t('dialogs.rename.placeholder') %>"
       >
       <div class="flex justify-end gap-2 mt-4">
-        <button
-          type="button"
-          data-action="click->file-operations#closeRenameDialog"
-          class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-        >
-          <%= t('common.cancel') %>
-        </button>
-        <button
-          type="button"
-          data-action="click->file-operations#submitRename"
-          class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)]"
-        >
-          <%= t('common.rename') %>
-        </button>
+        <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->file-operations#closeRenameDialog" %>
+        <%= render "shared/button_primary", label: t('common.rename'), action: "click->file-operations#submitRename" %>
       </div>
     </form>
   </dialog>
@@ -109,13 +97,7 @@
         </button>
       </div>
       <div class="flex justify-end mt-4">
-        <button
-          type="button"
-          data-action="click->file-operations#closeNoteTypeDialog"
-          class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-        >
-          <%= t('common.cancel') %>
-        </button>
+        <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->file-operations#closeNoteTypeDialog" %>
       </div>
     </div>
   </dialog>

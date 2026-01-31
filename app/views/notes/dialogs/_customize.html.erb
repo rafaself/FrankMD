@@ -9,18 +9,7 @@
     data-app-target="customizeDialog"
   >
     <div class="p-4">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-semibold"><%= t('dialogs.customize.title') %></h3>
-        <button
-          type="button"
-          data-action="click->customize#close"
-          class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      <%= render "shared/dialog_header", title: t('dialogs.customize.title'), close_action: "click->customize#close", margin_bottom: "mb-4" %>
 
       <!-- Font Family -->
       <div class="mb-4">
@@ -79,20 +68,8 @@
 
       <!-- Footer -->
       <div class="flex justify-end gap-2">
-        <button
-          type="button"
-          data-action="click->customize#close"
-          class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-        >
-          <%= t('common.cancel') %>
-        </button>
-        <button
-          type="button"
-          data-action="click->customize#apply"
-          class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:opacity-90"
-        >
-          <%= t('common.apply') %>
-        </button>
+        <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->customize#close" %>
+        <%= render "shared/button_primary", label: t('common.apply'), action: "click->customize#apply" %>
       </div>
     </div>
   </dialog>

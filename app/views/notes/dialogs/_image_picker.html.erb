@@ -7,17 +7,8 @@
 >
   <div class="text-[var(--theme-text-primary)] flex flex-col h-full max-h-[90vh]">
     <!-- Header -->
-    <div class="flex-shrink-0 flex items-center justify-between px-4 pt-4">
-      <h3 class="text-sm font-semibold"><%= t('dialogs.image_picker.title') %></h3>
-      <button
-        type="button"
-        data-action="click->image-picker#closeDialog"
-        class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    <div class="flex-shrink-0 px-4 pt-4">
+      <%= render "shared/dialog_header", title: t('dialogs.image_picker.title'), close_action: "click->image-picker#closeDialog", margin_bottom: "mb-0" %>
     </div>
 
     <!-- Tabs -->
@@ -593,13 +584,7 @@
 
     <!-- Footer -->
     <div class="flex-shrink-0 flex justify-end gap-2 px-4 pb-4 pt-4 border-t border-[var(--theme-border)]">
-      <button
-        type="button"
-        data-action="click->image-picker#closeDialog"
-        class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-      >
-        <%= t('common.cancel') %>
-      </button>
+      <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->image-picker#closeDialog" %>
       <button
         type="button"
         data-action="click->image-picker#insertImage"

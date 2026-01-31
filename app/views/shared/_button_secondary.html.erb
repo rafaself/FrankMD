@@ -1,0 +1,11 @@
+<%# Secondary/cancel button
+   Parameters:
+   - label: Button text (required)
+   - type: 'button' or 'submit' (default: 'button')
+   - action: Stimulus action string (optional)
+%>
+<button
+  type="<%= local_assigns[:type] || 'button' %>"
+  <% if local_assigns[:action] %>data-action="<%= action %>"<% end %>
+  class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
+><%= label %></button>

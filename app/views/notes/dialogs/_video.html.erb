@@ -6,17 +6,8 @@
   >
     <div class="text-[var(--theme-text-primary)]">
       <!-- Header with close button -->
-      <div class="flex items-center justify-between px-4 pt-4">
-        <h3 class="text-sm font-semibold"><%= t('dialogs.video.title') %></h3>
-        <button
-          type="button"
-          data-action="click->video-dialog#close"
-          class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+      <div class="px-4 pt-4">
+        <%= render "shared/dialog_header", title: t('dialogs.video.title'), close_action: "click->video-dialog#close", margin_bottom: "mb-0" %>
       </div>
 
       <!-- Tabs -->
@@ -67,13 +58,7 @@
         </div>
 
         <div class="flex justify-end gap-2">
-          <button
-            type="button"
-            data-action="click->video-dialog#close"
-            class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-          >
-            <%= t('common.cancel') %>
-          </button>
+          <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->video-dialog#close" %>
           <button
             type="button"
             data-action="click->video-dialog#insertVideo"
@@ -118,13 +103,7 @@
             </a>
           </div>
           <div class="flex justify-end gap-2 mt-4">
-            <button
-              type="button"
-              data-action="click->video-dialog#close"
-              class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-            >
-              <%= t('common.close') %>
-            </button>
+            <%= render "shared/button_secondary", label: t('common.close'), action: "click->video-dialog#close" %>
           </div>
         </div>
 
@@ -167,13 +146,7 @@
           </div>
 
           <div class="flex justify-end gap-2">
-            <button
-              type="button"
-              data-action="click->video-dialog#close"
-              class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
-            >
-              <%= t('common.cancel') %>
-            </button>
+            <%= render "shared/button_secondary", label: t('common.cancel'), action: "click->video-dialog#close" %>
           </div>
         </div>
       </div>
