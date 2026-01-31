@@ -78,6 +78,8 @@ en:
       ai_title: "AI Grammar Check"
       emoji: "Emoji"
       emoji_title: "Insert Emoji (Ctrl+Shift+E)"
+      find: "Find"
+      find_title: "Find and Replace (Ctrl+F)"
     # AI processing overlay
     processing_with: "Processing with"
     press_esc_to_cancel: "Press ESC to cancel"
@@ -355,6 +357,24 @@ en:
       corrected: "Corrected"
       additions_hint: "(additions in green)"
       accept_changes: "Accept Changes"
+
+    find_replace:
+      tab_find: "Find"
+      tab_replace: "Replace"
+      find_placeholder: "Find..."
+      replace_placeholder: "Replace with..."
+      previous: "Previous"
+      next: "Next"
+      replace: "Replace"
+      replace_all: "All"
+      replace_one_title: "Replace current match"
+      replace_all_title: "Replace all matches"
+      skip: "Skip"
+      case_sensitive: "Case sensitive (Aa)"
+      use_regex: "Use regular expression (.*)"
+      no_results: "No results"
+      match_count: "%{current} of %{total}"
+      open_dialog: "Open find dialog"
 
     # File finder dialog
     file_finder:

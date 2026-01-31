@@ -78,6 +78,8 @@ pt-BR:
       ai_title: "Verificação Gramatical com IA"
       emoji: "Emoji"
       emoji_title: "Inserir Emoji (Ctrl+Shift+E)"
+      find: "Buscar"
+      find_title: "Buscar e substituir (Ctrl+F)"
     # Overlay de processamento IA
     processing_with: "Processando com"
     press_esc_to_cancel: "Pressione ESC para cancelar"
@@ -355,6 +357,24 @@ pt-BR:
       corrected: "Corrigido"
       additions_hint: "(adições em verde)"
       accept_changes: "Aceitar Alterações"
+
+    find_replace:
+      tab_find: "Buscar"
+      tab_replace: "Substituir"
+      find_placeholder: "Buscar..."
+      replace_placeholder: "Substituir por..."
+      previous: "Anterior"
+      next: "Próximo"
+      replace: "Substituir"
+      replace_all: "Todos"
+      replace_one_title: "Substituir correspondência atual"
+      replace_all_title: "Substituir todas as correspondências"
+      skip: "Pular"
+      case_sensitive: "Diferenciar maiúsculas (Aa)"
+      use_regex: "Usar expressão regular (.*)"
+      no_results: "Nenhum resultado"
+      match_count: "%{current} de %{total}"
+      open_dialog: "Abrir busca"
 
     # Diálogo de busca de arquivo
     file_finder:

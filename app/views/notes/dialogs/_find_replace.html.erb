@@ -1,0 +1,186 @@
+<div data-controller="find-replace"
+     data-action="find-replace:jump->app#onFindReplaceJump find-replace:replace->app#onFindReplaceReplace find-replace:replace-all->app#onFindReplaceReplaceAll">
+  <dialog
+    class="p-0 rounded-lg shadow-xl bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] w-[520px]"
+    data-find-replace-target="dialog"
+  >
+    <div class="flex flex-col">
+      <div class="flex items-center justify-between px-3 py-2 border-b border-[var(--theme-border)]">
+        <div class="flex gap-1" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            data-find-replace-target="tabFind"
+            data-action="click->find-replace#switchToFind"
+            class="px-3 py-1 text-sm rounded-md text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-hover)]"
+          ><%= t("dialogs.find_replace.tab_find") %></button>
+          <button
+            type="button"
+            role="tab"
+            data-find-replace-target="tabReplace"
+            data-action="click->find-replace#switchToReplace"
+            class="px-3 py-1 text-sm rounded-md text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-hover)]"
+          ><%= t("dialogs.find_replace.tab_replace") %></button>
+        </div>
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            data-action="click->find-replace#minimize"
+            class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7-7-7 7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            data-action="click->find-replace#close"
+            class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-3 pt-3">
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            data-find-replace-target="findInput"
+            data-action="input->find-replace#onInput keydown->find-replace#onKeydown"
+            class="flex-1 px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+            placeholder="<%= t("dialogs.find_replace.find_placeholder") %>"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button
+            type="button"
+            data-action="click->find-replace#findPrevious"
+            class="p-2 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+            title="<%= t("dialogs.find_replace.previous") %>"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            data-action="click->find-replace#findNext"
+            class="p-2 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+            title="<%= t("dialogs.find_replace.next") %>"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-3 pb-3 pt-2 flex items-center justify-between text-xs">
+        <span data-find-replace-target="matchCount" class="text-[var(--theme-text-muted)]"></span>
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            data-find-replace-target="caseSensitiveToggle"
+            data-action="click->find-replace#toggleCaseSensitive"
+            class="px-2 py-1 rounded border border-[var(--theme-border)] text-[var(--theme-text-muted)]"
+            title="<%= t("dialogs.find_replace.case_sensitive") %>"
+            aria-pressed="false"
+          >Aa</button>
+          <button
+            type="button"
+            data-find-replace-target="regexToggle"
+            data-action="click->find-replace#toggleRegex"
+            class="px-2 py-1 rounded border border-[var(--theme-border)] text-[var(--theme-text-muted)]"
+            title="<%= t("dialogs.find_replace.use_regex") %>"
+            aria-pressed="false"
+          >.*</button>
+        </div>
+      </div>
+
+      <div class="px-3 pb-3 hidden" data-find-replace-target="replaceSection">
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            data-find-replace-target="replaceInput"
+            data-action="keydown->find-replace#onKeydown"
+            class="flex-1 px-3 py-2 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+            placeholder="<%= t("dialogs.find_replace.replace_placeholder") %>"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button
+            type="button"
+            data-action="click->find-replace#replaceCurrent"
+            class="px-3 py-1.5 text-sm rounded-md bg-[var(--theme-accent)] text-[var(--theme-accent-text)] hover:bg-[var(--theme-accent-hover)]"
+            title="<%= t("dialogs.find_replace.replace_one_title") %>"
+          >
+            <%= t("dialogs.find_replace.replace") %>
+          </button>
+          <button
+            type="button"
+            data-action="click->find-replace#skip"
+            class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
+          >
+            <%= t("dialogs.find_replace.skip") %>
+          </button>
+          <button
+            type="button"
+            data-action="click->find-replace#replaceAll"
+            class="px-3 py-1.5 text-sm rounded-md hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-secondary)]"
+            title="<%= t("dialogs.find_replace.replace_all_title") %>"
+          >
+            <%= t("dialogs.find_replace.replace_all") %>
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <div
+    data-find-replace-target="miniBar"
+    class="hidden fixed top-[88px] left-1/2 -translate-x-1/2 z-40 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] border-t-0 rounded-b-lg shadow-lg px-2 py-1 flex items-center gap-1"
+  >
+    <span data-find-replace-target="miniModeLabel" class="text-[10px] uppercase tracking-wide text-[var(--theme-text-faint)] px-1"></span>
+    <button
+      type="button"
+      data-action="click->find-replace#miniPrevious"
+      class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+      title="<%= t("dialogs.find_replace.previous") %>"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+      </svg>
+    </button>
+    <button
+      type="button"
+      data-action="click->find-replace#miniNext"
+      class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+      title="<%= t("dialogs.find_replace.next") %>"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <button
+      type="button"
+      data-action="click->find-replace#miniSkip"
+      class="px-2 py-0.5 text-xs rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+    >
+      <%= t("dialogs.find_replace.skip") %>
+    </button>
+    <span data-find-replace-target="miniCount" class="text-xs text-[var(--theme-text-muted)] px-1"></span>
+    <button
+      type="button"
+      data-action="click->find-replace#restore"
+      class="p-1 rounded hover:bg-[var(--theme-bg-hover)] text-[var(--theme-text-muted)]"
+      title="<%= t("dialogs.find_replace.open_dialog") %>"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8z" />
+      </svg>
+    </button>
+  </div>
+</div>

@@ -1450,6 +1450,71 @@ export default class extends Controller {
     await this.loadFile(path)
   }
 
+  openFindReplace(options = {}) {
+    if (!this.hasTextareaTarget) return
+
+    const selection = this.textareaTarget.value.substring(
+      this.textareaTarget.selectionStart,
+      this.textareaTarget.selectionEnd
+    )
+
+    const findReplaceElement = document.querySelector('[data-controller~="find-replace"]')
+    if (findReplaceElement) {
+      const findReplaceController = this.application.getControllerForElementAndIdentifier(
+        findReplaceElement,
+        "find-replace"
+      )
+      if (findReplaceController) {
+        findReplaceController.open({
+          textarea: this.textareaTarget,
+          tab: options.tab,
+          query: selection || undefined
+        })
+      }
+    }
+  }
+
+  onFindReplaceJump(event) {
+    if (!this.hasTextareaTarget) return
+
+    const { start, end } = event.detail
+    const textarea = this.textareaTarget
+    textarea.focus()
+    textarea.setSelectionRange(start, end)
+    this.scrollTextareaToPosition(start)
+  }
+
+  onFindReplaceReplace(event) {
+    if (!this.hasTextareaTarget) return
+
+    const { start, end, replacement } = event.detail
+    const textarea = this.textareaTarget
+    const text = textarea.value
+    const before = text.substring(0, start)
+    const after = text.substring(end)
+    textarea.value = before + replacement + after
+
+    const newPosition = start + replacement.length
+    textarea.focus()
+    textarea.setSelectionRange(newPosition, newPosition)
+    this.scrollTextareaToPosition(newPosition)
+    this.onTextareaInput()
+  }
+
+  onFindReplaceReplaceAll(event) {
+    if (!this.hasTextareaTarget) return
+
+    const { updatedText } = event.detail
+    if (typeof updatedText !== "string") return
+
+    const textarea = this.textareaTarget
+    textarea.value = updatedText
+    textarea.focus()
+    textarea.setSelectionRange(0, 0)
+    this.scrollTextareaToPosition(0)
+    this.onTextareaInput()
+  }
+
   // Content Search (Ctrl+Shift+F) - Delegates to content_search_controller
   openContentSearch() {
     const contentSearchElement = document.querySelector('[data-controller~="content-search"]')
@@ -1488,6 +1553,21 @@ export default class extends Controller {
     textarea.setSelectionRange(charPos, charPos)
 
     // Scroll to make the line visible
+    const style = window.getComputedStyle(textarea)
+    const fontSize = parseFloat(style.fontSize) || 14
+    const lineHeight = parseFloat(style.lineHeight) || fontSize * 1.6
+    const targetScroll = (lineNumber - 1) * lineHeight - textarea.clientHeight * 0.35
+
+    textarea.scrollTop = Math.max(0, targetScroll)
+  }
+
+  scrollTextareaToPosition(position) {
+    if (!this.hasTextareaTarget) return
+
+    const textarea = this.textareaTarget
+    const textBeforeCursor = textarea.value.substring(0, position)
+    const lineNumber = textBeforeCursor.split("\n").length
+
     const style = window.getComputedStyle(textarea)
     const fontSize = parseFloat(style.fontSize) || 14
     const lineHeight = parseFloat(style.lineHeight) || fontSize * 1.6
@@ -1834,6 +1914,16 @@ export default class extends Controller {
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "P") {
         event.preventDefault()
         this.togglePreview()
+      }
+
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "f") {
+        event.preventDefault()
+        this.openFindReplace()
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "H") {
+        event.preventDefault()
+        this.openFindReplace({ tab: "replace" })
       }
 
       // Ctrl/Cmd + Shift + F: Content search

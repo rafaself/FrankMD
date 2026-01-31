@@ -78,6 +78,8 @@ ko:
       ai_title: "AI 문법 검사"
       emoji: "이모지"
       emoji_title: "이모지 삽입 (Ctrl+Shift+E)"
+      find: "찾기"
+      find_title: "찾기 및 바꾸기 (Ctrl+F)"
     # AI 처리 오버레이
     processing_with: "처리 중:"
     press_esc_to_cancel: "ESC를 눌러 취소"
@@ -355,6 +357,24 @@ ko:
       corrected: "수정됨"
       additions_hint: "(추가는 초록색)"
       accept_changes: "변경사항 적용"
+
+    find_replace:
+      tab_find: "찾기"
+      tab_replace: "바꾸기"
+      find_placeholder: "찾기..."
+      replace_placeholder: "바꾸기..."
+      previous: "이전"
+      next: "다음"
+      replace: "바꾸기"
+      replace_all: "모두"
+      replace_one_title: "현재 일치 항목 바꾸기"
+      replace_all_title: "모든 일치 항목 바꾸기"
+      skip: "건너뛰기"
+      case_sensitive: "대소문자 구분 (Aa)"
+      use_regex: "정규식 사용 (.*)"
+      no_results: "결과 없음"
+      match_count: "%{current} / %{total}"
+      open_dialog: "찾기 창 열기"
 
     # 파일 찾기 다이얼로그
     file_finder:

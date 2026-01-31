@@ -78,6 +78,8 @@ ja:
       ai_title: "AI文法チェック"
       emoji: "絵文字"
       emoji_title: "絵文字挿入 (Ctrl+Shift+E)"
+      find: "検索"
+      find_title: "検索と置換 (Ctrl+F)"
     # AI processing overlay
     processing_with: "処理中："
     press_esc_to_cancel: "ESCでキャンセル"
@@ -355,6 +357,24 @@ ja:
       corrected: "修正後"
       additions_hint: "（追加は緑）"
       accept_changes: "変更を適用"
+
+    find_replace:
+      tab_find: "検索"
+      tab_replace: "置換"
+      find_placeholder: "検索..."
+      replace_placeholder: "置換..."
+      previous: "前へ"
+      next: "次へ"
+      replace: "置換"
+      replace_all: "すべて"
+      replace_one_title: "現在の一致を置換"
+      replace_all_title: "すべての一致を置換"
+      skip: "スキップ"
+      case_sensitive: "大文字と小文字を区別 (Aa)"
+      use_regex: "正規表現を使用 (.*)"
+      no_results: "結果なし"
+      match_count: "%{current} / %{total}"
+      open_dialog: "検索ダイアログを開く"
 
     # File finder dialog
     file_finder:
