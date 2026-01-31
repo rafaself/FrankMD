@@ -4,6 +4,42 @@ import { marked } from "marked"
 // Preview Controller
 // Handles markdown preview panel rendering, zoom, and scroll sync
 // Dispatches preview:toggled and preview:zoom-changed events
+// Automatically strips YAML/TOML frontmatter from preview
+
+// Strip frontmatter (YAML or TOML) from markdown content
+// YAML: starts with --- and ends with ---
+// TOML: starts with +++ and ends with +++
+function stripFrontmatter(content) {
+  if (!content) return content
+
+  // Check for YAML frontmatter (---)
+  if (content.startsWith("---")) {
+    const endMatch = content.indexOf("\n---", 3)
+    if (endMatch !== -1) {
+      // Find the end of the closing --- line
+      const afterFrontmatter = content.indexOf("\n", endMatch + 4)
+      if (afterFrontmatter !== -1) {
+        return content.slice(afterFrontmatter + 1).trimStart()
+      }
+      // Closing --- is at end of file
+      return ""
+    }
+  }
+
+  // Check for TOML frontmatter (+++)
+  if (content.startsWith("+++")) {
+    const endMatch = content.indexOf("\n+++", 3)
+    if (endMatch !== -1) {
+      const afterFrontmatter = content.indexOf("\n", endMatch + 4)
+      if (afterFrontmatter !== -1) {
+        return content.slice(afterFrontmatter + 1).trimStart()
+      }
+      return ""
+    }
+  }
+
+  return content
+}
 
 export default class extends Controller {
   static targets = [
@@ -75,7 +111,9 @@ export default class extends Controller {
     if (!this.isVisible) return
     if (!this.hasContentTarget) return
 
-    this.contentTarget.innerHTML = marked.parse(markdownContent || "")
+    // Strip frontmatter (YAML/TOML) before rendering
+    const content = stripFrontmatter(markdownContent || "")
+    this.contentTarget.innerHTML = marked.parse(content)
   }
 
   // Update preview with content and scroll sync
