@@ -511,6 +511,9 @@ class Config
   end
 
   def create_template_config
+    # Ensure parent directory exists
+    config_file_path.dirname.mkpath unless config_file_path.dirname.exist?
+
     lines = generate_template_lines
     config_file_path.write(lines.join("\n") + "\n")
   rescue => e
