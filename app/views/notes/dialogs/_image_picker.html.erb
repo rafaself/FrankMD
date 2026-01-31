@@ -126,37 +126,7 @@
         </div>
       </div>
 
-      <!-- S3 Upload Option (for local server images) -->
-      <div class="hidden" data-local-images-target="s3Option">
-        <label class="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            data-local-images-target="uploadToS3"
-            data-action="change->local-images#onS3CheckboxChange"
-            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-          >
-          <span>Upload to AWS S3 first</span>
-        </label>
-        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-          Image will be uploaded to S3 and the URL will be used instead of local path
-        </p>
-        <!-- Resize option (only when S3 is checked) -->
-        <div class="hidden mt-2 ml-6" data-local-images-target="resizeOption">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Resize:</span>
-            <select
-              data-local-images-target="resizeSelect"
-              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-            >
-              <option value="">None (original size)</option>
-              <option value="0.25">1/4 size (25%)</option>
-              <option value="0.5" selected>1/2 size (50%)</option>
-              <option value="0.67">2/3 size (67%)</option>
-            </select>
-            <span class="text-[var(--theme-text-muted)]">+ compress</span>
-          </label>
-        </div>
-      </div>
+      <%= render "notes/dialogs/s3_option", mode: "upload" %>
     </div>
 
     <!-- Tab Content: Folder (browser folder picker) -->
@@ -237,37 +207,7 @@
         </div>
       </div>
 
-      <!-- S3 Upload Option (for local folder images) -->
-      <div class="hidden" data-folder-images-target="s3Option">
-        <label class="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            data-folder-images-target="uploadToS3"
-            data-action="change->folder-images#onS3CheckboxChange"
-            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-          >
-          <span>Upload to AWS S3</span>
-        </label>
-        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-          Image will be uploaded to S3 (cloud URL). Otherwise saves to notes/images/ directory.
-        </p>
-        <!-- Resize option (only when S3 is checked) -->
-        <div class="hidden mt-2 ml-6" data-folder-images-target="resizeOption">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Resize:</span>
-            <select
-              data-folder-images-target="resizeSelect"
-              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-            >
-              <option value="">None (original size)</option>
-              <option value="0.25">1/4 size (25%)</option>
-              <option value="0.5" selected>1/2 size (50%)</option>
-              <option value="0.67">2/3 size (67%)</option>
-            </select>
-            <span class="text-[var(--theme-text-muted)]">+ compress</span>
-          </label>
-        </div>
-      </div>
+      <%= render "notes/dialogs/s3_option", mode: "upload", description: "Image will be uploaded to S3 (cloud URL). Otherwise saves to notes/images/ directory." %>
     </div>
 
     <!-- Tab Content: Web Search (Bing/DuckDuckGo) -->
@@ -311,37 +251,7 @@
         <!-- Images will be rendered by JavaScript -->
       </div>
 
-      <!-- S3 Re-upload Option (for external images) -->
-      <div class="hidden" data-web-images-target="s3Option">
-        <label class="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            data-web-images-target="reuploadToS3"
-            data-action="change->web-images#onS3CheckboxChange"
-            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-          >
-          <span>Download and re-upload to AWS S3</span>
-        </label>
-        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-          Image will be downloaded and uploaded to your S3, using your URL instead of the original
-        </p>
-        <!-- Resize option (only when S3 is checked) -->
-        <div class="hidden mt-2 ml-6" data-web-images-target="resizeOption">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Resize:</span>
-            <select
-              data-web-images-target="resizeSelect"
-              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-            >
-              <option value="">None (original size)</option>
-              <option value="0.25">1/4 size (25%)</option>
-              <option value="0.5" selected>1/2 size (50%)</option>
-              <option value="0.67">2/3 size (67%)</option>
-            </select>
-            <span class="text-[var(--theme-text-muted)]">+ compress</span>
-          </label>
-        </div>
-      </div>
+      <%= render "notes/dialogs/s3_option", mode: "reupload" %>
     </div>
 
     <!-- Tab Content: Google Images (requires API key) -->
@@ -424,37 +334,7 @@
         </div>
       </div>
 
-      <!-- S3 Re-upload Option (for external images) -->
-      <div class="hidden" data-google-images-target="s3Option">
-        <label class="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            data-google-images-target="reuploadToS3"
-            data-action="change->google-images#onS3CheckboxChange"
-            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-          >
-          <span>Download and re-upload to AWS S3</span>
-        </label>
-        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-          Image will be downloaded and uploaded to your S3, using your URL instead of the original
-        </p>
-        <!-- Resize option (only when S3 is checked) -->
-        <div class="hidden mt-2 ml-6" data-google-images-target="resizeOption">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Resize:</span>
-            <select
-              data-google-images-target="resizeSelect"
-              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-            >
-              <option value="">None (original size)</option>
-              <option value="0.25">1/4 size (25%)</option>
-              <option value="0.5" selected>1/2 size (50%)</option>
-              <option value="0.67">2/3 size (67%)</option>
-            </select>
-            <span class="text-[var(--theme-text-muted)]">+ compress</span>
-          </label>
-        </div>
-      </div>
+      <%= render "notes/dialogs/s3_option", mode: "reupload" %>
     </div>
 
     <!-- Tab Content: Pinterest -->
@@ -498,37 +378,7 @@
         <!-- Images will be rendered by JavaScript -->
       </div>
 
-      <!-- S3 Re-upload Option (for external images) -->
-      <div class="hidden" data-pinterest-images-target="s3Option">
-        <label class="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            data-pinterest-images-target="reuploadToS3"
-            data-action="change->pinterest-images#onS3CheckboxChange"
-            class="rounded border-[var(--theme-border)] text-[var(--theme-accent)] focus:ring-[var(--theme-accent)]"
-          >
-          <span>Download and re-upload to AWS S3</span>
-        </label>
-        <p class="text-xs text-[var(--theme-text-muted)] mt-1 ml-6">
-          Image will be downloaded and uploaded to your S3, using your URL instead of the original
-        </p>
-        <!-- Resize option (only when S3 is checked) -->
-        <div class="hidden mt-2 ml-6" data-pinterest-images-target="resizeOption">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Resize:</span>
-            <select
-              data-pinterest-images-target="resizeSelect"
-              class="px-2 py-1 text-sm border border-[var(--theme-border)] rounded bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
-            >
-              <option value="">None (original size)</option>
-              <option value="0.25">1/4 size (25%)</option>
-              <option value="0.5" selected>1/2 size (50%)</option>
-              <option value="0.67">2/3 size (67%)</option>
-            </select>
-            <span class="text-[var(--theme-text-muted)]">+ compress</span>
-          </label>
-        </div>
-      </div>
+      <%= render "notes/dialogs/s3_option", mode: "reupload" %>
     </div>
 
     <!-- Tab Content: AI Image Generation -->

@@ -5,10 +5,7 @@ import { FolderImageSource } from "lib/image_sources/folder_images"
 // Handles browsing and selecting images from local filesystem via File System Access API
 
 export default class extends Controller {
-  static targets = [
-    "apiNotice", "browsePrompt", "container", "status", "grid", "search",
-    "s3Option", "uploadToS3", "resizeOption", "resizeSelect"
-  ]
+  static targets = ["apiNotice", "browsePrompt", "container", "status", "grid", "search"]
 
   static values = {
     s3Enabled: Boolean
@@ -27,6 +24,11 @@ export default class extends Controller {
 
   get csrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.content || ""
+  }
+
+  get s3Option() {
+    const el = this.element.querySelector('[data-controller="s3-option"]')
+    return el ? this.application.getControllerForElementAndIdentifier(el, "s3-option") : null
   }
 
   // Called by parent controller when tab becomes active
@@ -94,9 +96,9 @@ export default class extends Controller {
     this.source.deselectAll(this.gridTarget)
     event.currentTarget.classList.add("selected")
 
-    // Show S3/resize options (always shown for folder uploads)
-    if (this.hasS3OptionTarget) {
-      this.s3OptionTarget.classList.remove("hidden")
+    // Show S3 options if enabled
+    if (this.s3EnabledValue && this.s3Option) {
+      this.s3Option.show()
     }
 
     // Dispatch selection event to parent
@@ -109,20 +111,12 @@ export default class extends Controller {
     })
   }
 
-  onS3CheckboxChange(event) {
-    if (this.hasResizeOptionTarget) {
-      this.resizeOptionTarget.classList.toggle("hidden", !event.target.checked)
-      if (!event.target.checked && this.hasResizeSelectTarget) {
-        this.resizeSelectTarget.value = "0.5"
-      }
-    }
-  }
-
   async getImageUrl() {
     if (!this.selectedImage) return null
 
-    const uploadToS3 = this.s3EnabledValue && this.hasUploadToS3Target && this.uploadToS3Target.checked
-    const resizeRatio = this.hasResizeSelectTarget ? this.resizeSelectTarget.value : ""
+    const s3 = this.s3Option
+    const uploadToS3 = this.s3EnabledValue && s3?.isChecked
+    const resizeRatio = s3?.resizeRatio || ""
 
     const data = await this.source.upload(
       this.selectedImage.file,
@@ -137,9 +131,7 @@ export default class extends Controller {
     this.source.reset()
     this.selectedImage = null
     if (this.hasSearchTarget) this.searchTarget.value = ""
-    if (this.hasS3OptionTarget) this.s3OptionTarget.classList.add("hidden")
-    if (this.hasUploadToS3Target) this.uploadToS3Target.checked = false
-    if (this.hasResizeOptionTarget) this.resizeOptionTarget.classList.add("hidden")
+    this.s3Option?.hide()
     this.setupUI()
   }
 }

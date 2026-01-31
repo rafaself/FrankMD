@@ -6,10 +6,7 @@ import { WebImageSource } from "lib/image_sources/web_images"
 // Handles searching images via Google Custom Search with infinite scroll
 
 export default class extends Controller {
-  static targets = [
-    "configNotice", "form", "search", "searchBtn", "status", "grid",
-    "s3Option", "reuploadToS3", "resizeOption", "resizeSelect"
-  ]
+  static targets = ["configNotice", "form", "search", "searchBtn", "status", "grid"]
 
   static values = {
     enabled: Boolean,
@@ -24,6 +21,11 @@ export default class extends Controller {
 
   get csrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.content || ""
+  }
+
+  get s3Option() {
+    const el = this.element.querySelector('[data-controller="s3-option"]')
+    return el ? this.application.getControllerForElementAndIdentifier(el, "s3-option") : null
   }
 
   // Called by parent controller when tab becomes active
@@ -105,8 +107,8 @@ export default class extends Controller {
     item.classList.add("ring-2", "ring-blue-500")
 
     // Show S3 options if enabled
-    if (this.s3EnabledValue && this.hasS3OptionTarget) {
-      this.s3OptionTarget.classList.remove("hidden")
+    if (this.s3EnabledValue && this.s3Option) {
+      this.s3Option.show()
     }
 
     // Dispatch selection event to parent
@@ -120,20 +122,12 @@ export default class extends Controller {
     })
   }
 
-  onS3CheckboxChange(event) {
-    if (this.hasResizeOptionTarget) {
-      this.resizeOptionTarget.classList.toggle("hidden", !event.target.checked)
-      if (!event.target.checked && this.hasResizeSelectTarget) {
-        this.resizeSelectTarget.value = "0.5"
-      }
-    }
-  }
-
   async getImageUrl() {
     if (!this.selectedImage) return null
 
-    const reuploadToS3 = this.s3EnabledValue && this.hasReuploadToS3Target && this.reuploadToS3Target.checked
-    const resizeRatio = reuploadToS3 && this.hasResizeSelectTarget ? this.resizeSelectTarget.value : ""
+    const s3 = this.s3Option
+    const reuploadToS3 = this.s3EnabledValue && s3?.isChecked
+    const resizeRatio = s3?.resizeRatio || ""
 
     if (reuploadToS3) {
       const data = await this.webSource.uploadToS3(this.selectedImage.url, resizeRatio, this.csrfToken)
@@ -149,7 +143,6 @@ export default class extends Controller {
     if (this.hasSearchTarget) this.searchTarget.value = ""
     if (this.hasGridTarget) this.gridTarget.innerHTML = ""
     if (this.hasStatusTarget) this.statusTarget.textContent = "Enter keywords and click Search or press Enter"
-    if (this.hasS3OptionTarget) this.s3OptionTarget.classList.add("hidden")
-    if (this.hasReuploadToS3Target) this.reuploadToS3Target.checked = false
+    this.s3Option?.hide()
   }
 }

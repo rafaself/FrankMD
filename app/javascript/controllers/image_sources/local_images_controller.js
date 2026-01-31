@@ -5,10 +5,7 @@ import { LocalImageSource } from "lib/image_sources/local_images"
 // Handles searching and selecting images from the server's images directory
 
 export default class extends Controller {
-  static targets = [
-    "configNotice", "form", "search", "grid",
-    "s3Option", "uploadToS3", "resizeOption", "resizeSelect"
-  ]
+  static targets = ["configNotice", "form", "search", "grid"]
 
   static values = {
     enabled: Boolean,
@@ -28,6 +25,11 @@ export default class extends Controller {
     return document.querySelector('meta[name="csrf-token"]')?.content || ""
   }
 
+  get s3Option() {
+    const el = this.element.querySelector('[data-controller="s3-option"]')
+    return el ? this.application.getControllerForElementAndIdentifier(el, "s3-option") : null
+  }
+
   // Called by parent controller when tab becomes active
   async activate() {
     if (this.enabledValue && this.hasGridTarget) {
@@ -38,7 +40,7 @@ export default class extends Controller {
 
   configure(enabled, s3Enabled) {
     this.enabledValue = enabled
-    this.s3Enabled = s3Enabled
+    this.s3EnabledValue = s3Enabled
 
     if (this.hasConfigNoticeTarget && this.hasFormTarget) {
       this.configNoticeTarget.classList.toggle("hidden", enabled)
@@ -70,8 +72,8 @@ export default class extends Controller {
     item.classList.add("selected")
 
     // Show S3 options if enabled
-    if (this.s3Enabled && this.hasS3OptionTarget) {
-      this.s3OptionTarget.classList.remove("hidden")
+    if (this.s3EnabledValue && this.s3Option) {
+      this.s3Option.show()
     }
 
     // Dispatch selection event to parent
@@ -85,18 +87,10 @@ export default class extends Controller {
     })
   }
 
-  onS3CheckboxChange(event) {
-    if (this.hasResizeOptionTarget) {
-      this.resizeOptionTarget.classList.toggle("hidden", !event.target.checked)
-      if (!event.target.checked && this.hasResizeSelectTarget) {
-        this.resizeSelectTarget.value = "0.5"
-      }
-    }
-  }
-
   async getImageUrl() {
-    const uploadToS3 = this.s3Enabled && this.hasUploadToS3Target && this.uploadToS3Target.checked
-    const resizeRatio = uploadToS3 && this.hasResizeSelectTarget ? this.resizeSelectTarget.value : ""
+    const s3 = this.s3Option
+    const uploadToS3 = this.s3EnabledValue && s3?.isChecked
+    const resizeRatio = s3?.resizeRatio || ""
     const path = this.source.selectedPath
 
     if (!path) return null
@@ -112,7 +106,6 @@ export default class extends Controller {
   reset() {
     this.source.reset()
     if (this.hasSearchTarget) this.searchTarget.value = ""
-    if (this.hasS3OptionTarget) this.s3OptionTarget.classList.add("hidden")
-    if (this.hasUploadToS3Target) this.uploadToS3Target.checked = false
+    this.s3Option?.hide()
   }
 }
