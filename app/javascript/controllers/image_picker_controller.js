@@ -729,21 +729,7 @@ export default class extends Controller {
       this.showImageLoading(resizeRatio ? "Downloading, resizing and uploading to S3..." : "Downloading and uploading to S3...")
       this.insertImageBtnTarget.disabled = true
 
-      const response = await fetch("/images/upload_external_to_s3", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": this.csrfToken
-        },
-        body: JSON.stringify({ url: this.selectedImage.url, resize: resizeRatio })
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to upload to S3")
-      }
-
-      const data = await response.json()
+      const data = await this.webImages.uploadToS3(this.selectedImage.url, resizeRatio, this.csrfToken)
       imageUrl = data.url
 
       this.hideImageLoading()

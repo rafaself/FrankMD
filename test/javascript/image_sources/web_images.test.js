@@ -195,4 +195,45 @@ describe("WebImageSource", () => {
       expect(() => source.deselectAll(null)).not.toThrow()
     })
   })
+
+  describe("uploadToS3", () => {
+    it("uploads external URL to S3", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ url: "https://s3.example.com/uploaded.jpg" })
+      })
+
+      const result = await source.uploadToS3("https://example.com/image.jpg", "0.5", "csrf-token")
+
+      expect(global.fetch).toHaveBeenCalledWith("/images/upload_external_to_s3", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": "csrf-token"
+        },
+        body: JSON.stringify({ url: "https://example.com/image.jpg", resize: "0.5" })
+      })
+      expect(result.url).toBe("https://s3.example.com/uploaded.jpg")
+    })
+
+    it("handles upload error", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        json: () => Promise.resolve({ error: "Image too large" })
+      })
+
+      await expect(source.uploadToS3("https://example.com/big.jpg", "", "token"))
+        .rejects.toThrow("Image too large")
+    })
+
+    it("handles generic upload error", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        json: () => Promise.resolve({})
+      })
+
+      await expect(source.uploadToS3("https://example.com/image.jpg", "", "token"))
+        .rejects.toThrow("Failed to upload to S3")
+    })
+  })
 })

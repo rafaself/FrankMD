@@ -83,4 +83,22 @@ export class WebImageSource {
       })
     }
   }
+
+  async uploadToS3(url, resize, csrfToken) {
+    const response = await fetch("/images/upload_external_to_s3", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      body: JSON.stringify({ url, resize })
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || "Failed to upload to S3")
+    }
+
+    return await response.json()
+  }
 }
