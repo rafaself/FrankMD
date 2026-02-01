@@ -1862,8 +1862,7 @@ export default class extends Controller {
     const actions = {
       newNote: () => this.getFileOperationsController()?.newNote(),
       save: () => this.saveNow(),
-      bold: () => this.applyInlineFormat("bold"),
-      italic: () => this.applyInlineFormat("italic"),
+      // Note: bold and italic are handled by CodeMirror's keymap (codemirror_extensions.js)
       togglePreview: () => this.togglePreview(),
       findInFile: () => this.openFindReplace(),
       findReplace: () => this.openFindReplace({ tab: "replace" }),
@@ -2026,8 +2025,8 @@ export default class extends Controller {
     }
   }
 
-  // Apply inline formatting directly (for keyboard shortcuts like Ctrl+B, Ctrl+I)
-  // Note: CodeMirror now handles Ctrl+B and Ctrl+I via its own keymap
+  // Apply inline formatting (used by text format menu via Ctrl+M or right-click)
+  // Note: Ctrl+B and Ctrl+I are handled by CodeMirror's keymap in codemirror_extensions.js
   applyInlineFormat(formatId) {
     const codemirrorController = this.getCodemirrorController()
     if (!codemirrorController) return

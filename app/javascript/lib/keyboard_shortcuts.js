@@ -11,8 +11,8 @@
 export const DEFAULT_SHORTCUTS = {
   newNote:        { key: "n", ctrl: true },
   save:           { key: "s", ctrl: true },
-  bold:           { key: "b", ctrl: true },
-  italic:         { key: "i", ctrl: true },
+  // Note: bold (Ctrl+B) and italic (Ctrl+I) are handled by CodeMirror's keymap
+  // in codemirror_extensions.js - do not add them here to avoid double execution
   togglePreview:  { key: "V", ctrl: true, shift: true },
   findInFile:     { key: "f", ctrl: true },
   findReplace:    { key: "h", ctrl: true },

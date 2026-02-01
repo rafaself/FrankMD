@@ -18,8 +18,7 @@ describe("SHORTCUTS", () => {
   it("contains expected shortcut definitions", () => {
     expect(SHORTCUTS.newNote).toEqual({ key: "n", ctrl: true })
     expect(SHORTCUTS.save).toEqual({ key: "s", ctrl: true })
-    expect(SHORTCUTS.bold).toEqual({ key: "b", ctrl: true })
-    expect(SHORTCUTS.italic).toEqual({ key: "i", ctrl: true })
+    // Note: bold and italic are handled by CodeMirror's keymap, not app shortcuts
     expect(SHORTCUTS.togglePreview).toEqual({ key: "V", ctrl: true, shift: true })
     expect(SHORTCUTS.findInFile).toEqual({ key: "f", ctrl: true })
     expect(SHORTCUTS.findReplace).toEqual({ key: "h", ctrl: true })
@@ -100,7 +99,7 @@ describe("matchShortcut", () => {
 describe("formatShortcut", () => {
   it("formats simple ctrl+key shortcuts", () => {
     expect(formatShortcut(SHORTCUTS.save)).toBe("Ctrl+S")
-    expect(formatShortcut(SHORTCUTS.bold)).toBe("Ctrl+B")
+    expect(formatShortcut(SHORTCUTS.newNote)).toBe("Ctrl+N")
   })
 
   it("formats ctrl+shift+key shortcuts", () => {
@@ -247,7 +246,7 @@ describe("mergeShortcuts", () => {
     const merged = mergeShortcuts(DEFAULT_SHORTCUTS, userShortcuts)
 
     expect(merged.save).toEqual({ key: "w", ctrl: true })
-    expect(merged.bold).toEqual(DEFAULT_SHORTCUTS.bold) // Other shortcuts unchanged
+    expect(merged.newNote).toEqual(DEFAULT_SHORTCUTS.newNote) // Other shortcuts unchanged
   })
 
   it("removes shortcuts set to null", () => {
@@ -257,7 +256,7 @@ describe("mergeShortcuts", () => {
     const merged = mergeShortcuts(DEFAULT_SHORTCUTS, userShortcuts)
 
     expect(merged.save).toBeUndefined()
-    expect(merged.bold).toBeDefined()
+    expect(merged.newNote).toBeDefined()
   })
 
   it("adds new shortcuts from user config", () => {

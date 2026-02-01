@@ -123,9 +123,14 @@ const typewriterPlugin = ViewPlugin.fromClass(class {
     }
 
     // Center cursor on selection changes or document changes
-    // But NOT while user is actively selecting with mouse (prevents scroll jitter)
-    const isSelecting = update.state.field(isSelectingState)
-    if (isEnabled && !isSelecting && (update.selectionSet || update.docChanged)) {
+    // But NOT while:
+    // 1. User is actively selecting with mouse (prevents scroll jitter during drag)
+    // 2. There's an active text selection (anchor !== head) - user is selecting text
+    const isMouseSelecting = update.state.field(isSelectingState)
+    const selection = update.state.selection.main
+    const hasTextSelection = selection.anchor !== selection.head
+
+    if (isEnabled && !isMouseSelecting && !hasTextSelection && (update.selectionSet || update.docChanged)) {
       // Use setTimeout to ensure we run after CodeMirror's own scroll handling
       setTimeout(() => maintainTypewriterScroll(this.view), 0)
     }
