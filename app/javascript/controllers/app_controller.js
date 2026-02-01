@@ -50,6 +50,8 @@ export default class extends Controller {
     this.currentFileType = null  // "markdown", "config", or null
     this.expandedFolders = new Set()
     this.saveTimeout = null
+    this.isOffline = false
+    this.hasUnsavedChanges = false
 
     // Editor customization - fonts in alphabetical order, Cascadia Code as default
     this.editorFonts = [
@@ -597,6 +599,12 @@ export default class extends Controller {
   }
 
   scheduleAutoSave() {
+    // Don't schedule saves while offline
+    if (this.isOffline) {
+      this.hasUnsavedChanges = true
+      return
+    }
+
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout)
     }
@@ -605,6 +613,12 @@ export default class extends Controller {
   }
 
   async saveNow() {
+    // Don't attempt saves while offline
+    if (this.isOffline) {
+      this.hasUnsavedChanges = true
+      return
+    }
+
     if (!this.currentFile || !this.hasTextareaTarget) return
 
     if (this.saveTimeout) {
@@ -629,6 +643,7 @@ export default class extends Controller {
         throw new Error(window.t("errors.failed_to_save"))
       }
 
+      this.hasUnsavedChanges = false
       this.showSaveStatus(window.t("status.saved"))
       setTimeout(() => this.showSaveStatus(""), 2000)
 
@@ -639,6 +654,36 @@ export default class extends Controller {
     } catch (error) {
       console.error("Error saving:", error)
       this.showSaveStatus(window.t("status.error_saving"), true)
+    }
+  }
+
+  // Connection status handlers
+  onConnectionLost() {
+    this.isOffline = true
+
+    // Cancel any pending save - we'll save when connection returns
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout)
+      this.saveTimeout = null
+      this.hasUnsavedChanges = true
+    }
+
+    // Cancel any pending config save
+    if (this.configSaveTimeout) {
+      clearTimeout(this.configSaveTimeout)
+      this.configSaveTimeout = null
+    }
+
+    this.showSaveStatus(window.t("connection.offline_message"), true)
+  }
+
+  onConnectionRestored() {
+    this.isOffline = false
+    this.showSaveStatus("")
+
+    // Save if there were unsaved changes
+    if (this.hasUnsavedChanges && this.currentFile) {
+      this.saveNow()
     }
   }
 
