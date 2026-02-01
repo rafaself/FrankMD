@@ -45,6 +45,9 @@ Rails.application.routes.draw do
   # Translations API (for JavaScript i18n)
   get "translations", to: "translations#show"
 
+  # Logs API (for debugging)
+  get "logs/tail", to: "logs#tail"
+
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 end
