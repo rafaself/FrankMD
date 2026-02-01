@@ -325,6 +325,7 @@ pt-BR:
         link: "Link"
         dialogs: "Diálogos"
         help: "Ajuda"
+        log_viewer: "Visualizador de logs"
         close_dialog: "Fechar diálogo"
         switch_tabs: "Trocar abas (com aba em foco)"
         navigate_items: "Navegar itens"

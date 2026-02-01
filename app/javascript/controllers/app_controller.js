@@ -1519,6 +1519,20 @@ export default class extends Controller {
     }
   }
 
+  // === Log Viewer - Delegates to log_viewer_controller ===
+  openLogViewer() {
+    const logViewerElement = document.querySelector('[data-controller~="log-viewer"]')
+    if (logViewerElement) {
+      const logViewerController = this.application.getControllerForElementAndIdentifier(
+        logViewerElement,
+        "log-viewer"
+      )
+      if (logViewerController) {
+        logViewerController.open()
+      }
+    }
+  }
+
   // === Code Snippet Editor - Delegates to code_dialog_controller ===
   openCodeEditor() {
     const codemirrorController = this.getCodemirrorController()
@@ -1862,6 +1876,7 @@ export default class extends Controller {
       emojiPicker: () => this.openEmojiPicker(),
       increaseWidth: () => this.increaseEditorWidth(),
       decreaseWidth: () => this.decreaseEditorWidth(),
+      logViewer: () => this.openLogViewer(),
       help: () => this.openHelp(),
       closeDialogs: () => this.closeAllDialogs()
     }

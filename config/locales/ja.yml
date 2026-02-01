@@ -320,6 +320,7 @@ ja:
         link: "リンク"
         dialogs: "ダイアログ"
         help: "ヘルプ"
+        log_viewer: "ログビューア"
         close_dialog: "ダイアログを閉じる"
         switch_tabs: "タブ切替（タブにフォーカス時）"
         navigate_items: "項目を移動"

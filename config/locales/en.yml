@@ -328,6 +328,7 @@ en:
         link: "Link"
         dialogs: "Dialogs"
         help: "Help"
+        log_viewer: "Log viewer"
         close_dialog: "Close dialog"
         switch_tabs: "Switch tabs (when tab focused)"
         navigate_items: "Navigate items"

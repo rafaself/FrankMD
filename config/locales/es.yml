@@ -320,6 +320,7 @@ es:
         link: "Enlace"
         dialogs: "Diálogos"
         help: "Ayuda"
+        log_viewer: "Visor de registros"
         close_dialog: "Cerrar diálogo"
         switch_tabs: "Cambiar pestañas (con pestaña enfocada)"
         navigate_items: "Navegar elementos"

@@ -47,54 +47,8 @@ describe("LogViewerController", () => {
     document.body.innerHTML = ""
   })
 
-  describe("keyboard shortcut", () => {
-    it("opens dialog on Ctrl+Shift+L", () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ environment: "test", file: "test.log", lines: [] })
-      })
-      const openSpy = vi.spyOn(controller, "open")
-
-      const event = new KeyboardEvent("keydown", {
-        key: "L",
-        ctrlKey: true,
-        shiftKey: true
-      })
-      document.dispatchEvent(event)
-
-      expect(openSpy).toHaveBeenCalled()
-    })
-
-    it("opens dialog on Cmd+Shift+L (Mac)", () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ environment: "test", file: "test.log", lines: [] })
-      })
-      const openSpy = vi.spyOn(controller, "open")
-
-      const event = new KeyboardEvent("keydown", {
-        key: "L",
-        metaKey: true,
-        shiftKey: true
-      })
-      document.dispatchEvent(event)
-
-      expect(openSpy).toHaveBeenCalled()
-    })
-
-    it("does not open on Ctrl+L without Shift", () => {
-      const openSpy = vi.spyOn(controller, "open")
-
-      const event = new KeyboardEvent("keydown", {
-        key: "l",
-        ctrlKey: true,
-        shiftKey: false
-      })
-      document.dispatchEvent(event)
-
-      expect(openSpy).not.toHaveBeenCalled()
-    })
-  })
+  // Note: Keyboard shortcut (Ctrl+Shift+O) is now handled by app_controller
+  // Tests for keyboard shortcuts are in the app_controller/keyboard_shortcuts tests
 
   describe("open", () => {
     it("shows the dialog", async () => {
@@ -278,13 +232,5 @@ describe("LogViewerController", () => {
     })
   })
 
-  describe("disconnect", () => {
-    it("removes keydown listener", () => {
-      const removeEventListenerSpy = vi.spyOn(document, "removeEventListener")
-
-      controller.disconnect()
-
-      expect(removeEventListenerSpy).toHaveBeenCalledWith("keydown", expect.any(Function))
-    })
-  })
+  // Note: disconnect() no longer needed as keyboard handling moved to app_controller
 })

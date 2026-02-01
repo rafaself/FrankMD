@@ -317,6 +317,7 @@ he:
         link: "קישור"
         dialogs: "דיאלוגים"
         help: "עזרה"
+        log_viewer: "מציג יומן"
         close_dialog: "סגור דיאלוג"
         switch_tabs: "החלף לשוניות (כאשר לשונית בפוקוס)"
         navigate_items: "נווט פריטים"

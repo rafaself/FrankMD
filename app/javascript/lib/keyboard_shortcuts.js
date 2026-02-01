@@ -26,6 +26,7 @@ export const DEFAULT_SHORTCUTS = {
   emojiPicker:    { key: "E", ctrl: true, shift: true },
   increaseWidth:  { key: "+", ctrl: true, shift: true },  // Ctrl+Shift++ (increase editor width)
   decreaseWidth:  { key: "_", ctrl: true, shift: true },  // Ctrl+Shift+- (decrease editor width)
+  logViewer:      { key: "O", ctrl: true, shift: true },  // Ctrl+Shift+O (open log viewer)
   help:           { key: "F1" },
   closeDialogs:   { key: "Escape", preventDefault: false }
 }

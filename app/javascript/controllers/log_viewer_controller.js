@@ -2,31 +2,10 @@ import { Controller } from "@hotwired/stimulus"
 
 // Log Viewer Controller
 // Opens a dialog showing the last 100 lines of the Rails log
-// Triggered by keyboard shortcut only (Ctrl+Shift+L)
+// Triggered by keyboard shortcut Ctrl+Shift+O (via app_controller)
 
 export default class extends Controller {
   static targets = ["dialog", "content", "status", "environment"]
-
-  connect() {
-    this.boundKeyHandler = this.handleKeydown.bind(this)
-    document.addEventListener("keydown", this.boundKeyHandler)
-  }
-
-  disconnect() {
-    document.removeEventListener("keydown", this.boundKeyHandler)
-  }
-
-  handleKeydown(event) {
-    // Ctrl+Shift+L (or Cmd+Shift+L on Mac)
-    const isCtrlOrCmd = event.ctrlKey || event.metaKey
-    const isShift = event.shiftKey
-    const isL = event.key.toLowerCase() === "l"
-
-    if (isCtrlOrCmd && isShift && isL) {
-      event.preventDefault()
-      this.open()
-    }
-  }
 
   async open() {
     if (!this.hasDialogTarget) return

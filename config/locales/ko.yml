@@ -320,6 +320,7 @@ ko:
         link: "링크"
         dialogs: "다이얼로그"
         help: "도움말"
+        log_viewer: "로그 뷰어"
         close_dialog: "다이얼로그 닫기"
         switch_tabs: "탭 전환 (탭에 포커스 시)"
         navigate_items: "항목 탐색"

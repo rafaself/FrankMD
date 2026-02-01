@@ -320,6 +320,7 @@ pt-PT:
         link: "Ligação"
         dialogs: "Diálogos"
         help: "Ajuda"
+        log_viewer: "Visualizador de logs"
         close_dialog: "Fechar diálogo"
         switch_tabs: "Trocar separadores (com separador focado)"
         navigate_items: "Navegar itens"
