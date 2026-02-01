@@ -1634,12 +1634,21 @@ export default class extends Controller {
   }
 
   async onFileRenamed(event) {
-    const { oldPath, newPath } = event.detail
+    const { oldPath, newPath, type } = event.detail
+
+    // For folder renames, check if current file is inside the renamed folder
+    if (type === "folder" && this.currentFile?.startsWith(oldPath + "/")) {
+      const newFilePath = this.currentFile.replace(oldPath, newPath)
+      // Navigate to new URL to force full refresh
+      window.location.href = `/notes/${encodePath(newFilePath)}`
+      return
+    }
 
     // Update current file if it was the renamed file
     if (this.currentFile === oldPath) {
       this.currentFile = newPath
       this.updatePathDisplay(newPath.replace(/\.md$/, ""))
+      this.updateUrl(newPath)
     }
 
     await this.refreshTree()
