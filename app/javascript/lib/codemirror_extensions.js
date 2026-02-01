@@ -2,7 +2,7 @@
 // Combines all necessary CodeMirror extensions for the markdown editor
 
 import { EditorView, keymap, placeholder, lineNumbers, highlightActiveLineGutter, drawSelection, rectangularSelection, highlightActiveLine, ViewPlugin } from "@codemirror/view"
-import { EditorState, Compartment } from "@codemirror/state"
+import { EditorState, Compartment, Prec } from "@codemirror/state"
 import { history, defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands"
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown"
 import { bracketMatching } from "@codemirror/language"
@@ -96,30 +96,27 @@ function wrapSelection(view, prefix, suffix) {
   return true
 }
 
-const markdownKeymap = keymap.of([
+// Markdown formatting keymap with highest priority to override browser defaults
+const markdownKeymap = Prec.highest(keymap.of([
   // Bold: Ctrl/Cmd + B
   {
     key: "Mod-b",
-    run: (view) => wrapSelection(view, "**", "**"),
-    preventDefault: true
+    run: (view) => wrapSelection(view, "**", "**")
   },
   // Italic: Ctrl/Cmd + I
   {
     key: "Mod-i",
-    run: (view) => wrapSelection(view, "*", "*"),
-    preventDefault: true
+    run: (view) => wrapSelection(view, "*", "*")
   },
   // Strikethrough: Ctrl/Cmd + Shift + S
   {
     key: "Mod-Shift-s",
-    run: (view) => wrapSelection(view, "~~", "~~"),
-    preventDefault: true
+    run: (view) => wrapSelection(view, "~~", "~~")
   },
   // Inline code: Ctrl/Cmd + `
   {
     key: "Mod-`",
-    run: (view) => wrapSelection(view, "`", "`"),
-    preventDefault: true
+    run: (view) => wrapSelection(view, "`", "`")
   },
   // Link: Ctrl/Cmd + K
   {
@@ -145,10 +142,9 @@ const markdownKeymap = keymap.of([
         })
       }
       return true
-    },
-    preventDefault: true
+    }
   }
-])
+]))
 
 /**
  * Create the base extensions for the editor
