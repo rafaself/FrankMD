@@ -391,6 +391,7 @@ pt-BR:
       use_regex: "Usar expressão regular (.*)"
       no_results: "Nenhum resultado"
       match_count: "%{current} de %{total}"
+      replaced_count: "%{count} substituído(s)"
       open_dialog: "Abrir busca"
 
     # Diálogo de busca de arquivo

@@ -385,6 +385,7 @@ es:
       use_regex: "Usar expresión regular (.*)"
       no_results: "Sin resultados"
       match_count: "%{current} de %{total}"
+      replaced_count: "%{count} reemplazado(s)"
       open_dialog: "Abrir cuadro de búsqueda"
 
     # File finder dialog

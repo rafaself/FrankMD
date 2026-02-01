@@ -235,6 +235,7 @@ export default class extends Controller {
   replaceAll() {
     if (!this.matches.length) return
 
+    const replacedCount = this.matches.length
     const replacement = this.replaceInputTarget.value
     const text = this.textareaRef ? this.textareaRef.value : ""
     const updated = replaceMatches(text, this.matches, replacement, {
@@ -251,6 +252,25 @@ export default class extends Controller {
     })
 
     this.findAll()
+    this.showReplacedFeedback(replacedCount)
+  }
+
+  showReplacedFeedback(count) {
+    const message = window.t("dialogs.find_replace.replaced_count", { count })
+    this.matchCountTarget.textContent = message
+    this.matchCountTarget.classList.add("text-green-500")
+    if (this.hasMiniCountTarget) {
+      this.miniCountTarget.textContent = message
+    }
+
+    // Clear the feedback after 2 seconds
+    if (this.replacedFeedbackTimeout) {
+      clearTimeout(this.replacedFeedbackTimeout)
+    }
+    this.replacedFeedbackTimeout = setTimeout(() => {
+      this.matchCountTarget.classList.remove("text-green-500")
+      this.updateMatchCount()
+    }, 2000)
   }
 
   jumpToMatch(index) {

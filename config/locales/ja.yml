@@ -385,6 +385,7 @@ ja:
       use_regex: "正規表現を使用 (.*)"
       no_results: "結果なし"
       match_count: "%{current} / %{total}"
+      replaced_count: "%{count}件置換"
       open_dialog: "検索ダイアログを開く"
 
     # File finder dialog

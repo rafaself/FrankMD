@@ -394,6 +394,7 @@ en:
       use_regex: "Use regular expression (.*)"
       no_results: "No results"
       match_count: "%{current} of %{total}"
+      replaced_count: "Replaced %{count}"
       open_dialog: "Open find dialog"
 
     # File finder dialog

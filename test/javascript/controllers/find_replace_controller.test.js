@@ -28,6 +28,9 @@ describe("FindReplaceController", () => {
       if (key === "dialogs.find_replace.no_results") {
         return "No results"
       }
+      if (key === "dialogs.find_replace.replaced_count") {
+        return `Replaced ${options.count}`
+      }
       return key
     })
 
@@ -145,5 +148,40 @@ describe("FindReplaceController", () => {
     expect(dispatchSpy).toHaveBeenCalledWith("replace-all", expect.objectContaining({
       detail: expect.objectContaining({ updatedText: "b b" })
     }))
+  })
+
+  it("shows visual feedback after replace all", () => {
+    textarea.value = "a a a"
+    controller.textareaRef = textarea
+    controller.findInputTarget.value = "a"
+    controller.replaceInputTarget.value = "b"
+    controller.findAll()
+
+    expect(controller.matches.length).toBe(3)
+
+    controller.replaceAll()
+
+    expect(controller.matchCountTarget.textContent).toBe("Replaced 3")
+    expect(controller.matchCountTarget.classList.contains("text-green-500")).toBe(true)
+  })
+
+  it("clears replacement feedback after timeout", async () => {
+    vi.useFakeTimers()
+
+    textarea.value = "a a"
+    controller.textareaRef = textarea
+    controller.findInputTarget.value = "a"
+    controller.replaceInputTarget.value = "b"
+    controller.findAll()
+
+    controller.replaceAll()
+
+    expect(controller.matchCountTarget.textContent).toBe("Replaced 2")
+
+    vi.advanceTimersByTime(2000)
+
+    expect(controller.matchCountTarget.classList.contains("text-green-500")).toBe(false)
+
+    vi.useRealTimers()
   })
 })
