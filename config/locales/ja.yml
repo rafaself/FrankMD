@@ -302,6 +302,8 @@ ja:
         toggle_preview: "プレビュー切替"
         typewriter_mode: "タイプライターモード"
         toggle_line_numbers: "行番号切替"
+        increase_width: "エディタ幅を広げる"
+        decrease_width: "エディタ幅を狭める"
         indent: "行/ブロックをインデント"
         unindent: "インデント解除"
         insert: "挿入"

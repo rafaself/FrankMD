@@ -531,6 +531,8 @@ This is useful for:
 | `Ctrl+Shift+V` | Toggle preview panel |
 | `Ctrl+\` | Toggle typewriter mode |
 | `Ctrl+L` | Toggle line numbers |
+| `Ctrl+Shift++` | Increase editor width |
+| `Ctrl+Shift+-` | Decrease editor width |
 | `Tab` | Indent line/block |
 | `Shift+Tab` | Unindent block |
 
@@ -554,15 +556,16 @@ Typewriter mode (`Ctrl+\`) is designed for focused, distraction-free writing:
 
 **Normal mode (default):**
 - Explorer panel visible on the left
-- Preview panel hidden
+- Preview panel available
 - Editor uses normal scrolling
 
 **Typewriter mode:**
 - Explorer panel hidden
-- Preview panel opens automatically
-- Cursor stays centered in the middle of the editor
+- Preview panel closed for maximum focus
+- Editor centered horizontally on the screen
+- Cursor stays centered in the middle of the editor (50% viewport height)
 - As you type, the text scrolls to keep your writing position fixed
-- Preview panel syncs with typewriter position
+- Adjust editor width with `Ctrl+Shift++` and `Ctrl+Shift+-`
 
 This mimics the experience of a typewriter where your typing position stays constant on the page, reducing eye movement and helping maintain focus during long writing sessions.
 

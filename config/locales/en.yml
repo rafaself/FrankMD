@@ -310,6 +310,8 @@ en:
         toggle_preview: "Toggle preview"
         typewriter_mode: "Typewriter mode"
         toggle_line_numbers: "Toggle line numbers"
+        increase_width: "Increase editor width"
+        decrease_width: "Decrease editor width"
         indent: "Indent line/block"
         unindent: "Unindent block"
         insert: "Insert"
