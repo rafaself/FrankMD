@@ -89,10 +89,10 @@ export default class extends Controller {
     if (this._scrollSourceTimeout) {
       clearTimeout(this._scrollSourceTimeout)
     }
-    // Clear the flag after a short delay to allow new scrolls
+    // Clear flag after scroll animations complete (smooth scroll can take 300ms+)
     this._scrollSourceTimeout = setTimeout(() => {
       this._scrollSource = null
-    }, 100)
+    }, 150)
   }
 
   // Mark that scroll was initiated by preview (prevents reverse sync)
@@ -103,7 +103,7 @@ export default class extends Controller {
     }
     this._scrollSourceTimeout = setTimeout(() => {
       this._scrollSource = null
-    }, 100)
+    }, 150)
   }
 
   // Handle scroll event on preview content - sync to editor

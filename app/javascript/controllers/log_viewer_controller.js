@@ -18,7 +18,11 @@ export default class extends Controller {
 
   handleKeydown(event) {
     // Ctrl+Shift+L (or Cmd+Shift+L on Mac)
-    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "l") {
+    const isCtrlOrCmd = event.ctrlKey || event.metaKey
+    const isShift = event.shiftKey
+    const isL = event.key.toLowerCase() === "l"
+
+    if (isCtrlOrCmd && isShift && isL) {
       event.preventDefault()
       this.open()
     }

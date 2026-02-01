@@ -1,6 +1,6 @@
 <div class="h-screen w-full flex flex-col bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)]"
-     data-controller="app connection-monitor"
-     data-action="connection-monitor:offline->app#onConnectionLost connection-monitor:online->app#onConnectionRestored"
+     data-controller="app connection-monitor typewriter"
+     data-action="connection-monitor:offline->app#onConnectionLost connection-monitor:online->app#onConnectionRestored typewriter:toggled->app#onTypewriterToggled"
      data-app-tree-value="<%= @tree.to_json %>"
      data-app-initial-path-value="<%= @initial_path.to_json %>"
      data-app-initial-note-value="<%= (@initial_note || {}).to_json %>"

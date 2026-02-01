@@ -94,6 +94,10 @@ export default class extends Controller {
     // Track pending config saves to debounce
     this.configSaveTimeout = null
 
+    // Scroll sync coordination - prevents feedback loops between editor and preview
+    this._scrollSource = null // 'editor' or 'preview'
+    this._scrollSourceTimeout = null
+
     this.renderTree()
     this.setupKeyboardShortcuts()
     this.setupDialogClickOutside()
@@ -550,6 +554,14 @@ export default class extends Controller {
     }
   }
 
+  // Dispatch an input event to trigger all listeners after programmatic value changes
+  // This is the standard pattern - setting textarea.value doesn't fire input events
+  triggerTextareaInput() {
+    if (this.hasTextareaTarget) {
+      this.textareaTarget.dispatchEvent(new Event("input", { bubbles: true }))
+    }
+  }
+
   onTextareaSelectionChange() {
     this.scheduleLineNumberUpdate()
     this.updateLinePosition()
@@ -557,6 +569,13 @@ export default class extends Controller {
 
   onTextareaScroll() {
     this.syncLineNumberScroll()
+
+    // Don't sync preview if this scroll was caused by preview sync (prevents feedback loop)
+    if (this._scrollSource === "preview") return
+
+    // Mark that editor initiated this scroll
+    this._markScrollFromEditor()
+
     // Sync preview scroll
     const previewController = this.getPreviewController()
     if (previewController && previewController.isVisible && this.hasTextareaTarget) {
@@ -566,6 +585,29 @@ export default class extends Controller {
         previewController.syncFromEditorScroll(this.textareaTarget)
       }
     }
+  }
+
+  // Mark that scroll was initiated by editor (prevents reverse sync)
+  _markScrollFromEditor() {
+    this._scrollSource = "editor"
+    if (this._scrollSourceTimeout) {
+      clearTimeout(this._scrollSourceTimeout)
+    }
+    // Clear flag after scroll animations complete (smooth scroll can take 300ms+)
+    this._scrollSourceTimeout = setTimeout(() => {
+      this._scrollSource = null
+    }, 150)
+  }
+
+  // Mark that scroll was initiated by preview (prevents reverse sync)
+  _markScrollFromPreview() {
+    this._scrollSource = "preview"
+    if (this._scrollSourceTimeout) {
+      clearTimeout(this._scrollSourceTimeout)
+    }
+    this._scrollSourceTimeout = setTimeout(() => {
+      this._scrollSource = null
+    }, 150)
   }
 
   // Update preview and sync scroll to cursor position
@@ -894,8 +936,7 @@ export default class extends Controller {
     }
 
     textarea.focus()
-    this.scheduleAutoSave()
-    this.updatePreview()
+    this.triggerTextareaInput()
   }
 
   // === Image Picker Event Handler ===
@@ -923,9 +964,7 @@ export default class extends Controller {
     const newPosition = start + insert.length
     textarea.setSelectionRange(newPosition, newPosition)
     textarea.focus()
-
-    this.scheduleAutoSave()
-    this.updatePreview()
+    this.triggerTextareaInput()
   }
 
   // Open image picker dialog (delegates to image-picker controller)
@@ -1325,7 +1364,7 @@ export default class extends Controller {
     textarea.focus()
     textarea.setSelectionRange(newPosition, newPosition)
     this.scrollTextareaToPosition(newPosition)
-    this.onTextareaInput()
+    this.triggerTextareaInput()
   }
 
   onFindReplaceReplaceAll(event) {
@@ -1339,7 +1378,7 @@ export default class extends Controller {
     textarea.focus()
     textarea.setSelectionRange(0, 0)
     this.scrollTextareaToPosition(0)
-    this.onTextareaInput()
+    this.triggerTextareaInput()
   }
 
   openJumpToLine() {
@@ -1497,8 +1536,7 @@ export default class extends Controller {
     setTimeout(() => {
       textarea.setSelectionRange(newCursorPos, newCursorPos)
     }, 0)
-    this.scheduleAutoSave()
-    this.updatePreview()
+    this.triggerTextareaInput()
   }
 
   // About Dialog - delegates to help controller
@@ -1543,9 +1581,7 @@ export default class extends Controller {
     const newCursorPos = before.length + prefix.length + embedCode.length
     textarea.focus()
     textarea.setSelectionRange(newCursorPos, newCursorPos)
-
-    this.scheduleAutoSave()
-    this.updatePreview()
+    this.triggerTextareaInput()
   }
 
   // === AI Grammar Check Methods - Delegates to ai_grammar_controller ===
@@ -1611,7 +1647,7 @@ export default class extends Controller {
   onAiAccepted(event) {
     const { correctedText } = event.detail
     this.textareaTarget.value = correctedText
-    this.onTextareaInput() // Trigger save and preview update
+    this.triggerTextareaInput()
   }
 
   // Handle preview zoom changed event - save to config
@@ -1639,6 +1675,12 @@ export default class extends Controller {
   // Handle preview scroll event - sync editor to preview position
   onPreviewScroll(event) {
     if (!this.hasTextareaTarget) return
+
+    // Don't sync if this scroll was caused by editor sync (prevents feedback loop)
+    if (this._scrollSource === "editor") return
+
+    // Mark that preview initiated this scroll
+    this._markScrollFromPreview()
 
     const { scrollRatio } = event.detail
     const textarea = this.textareaTarget
@@ -1838,7 +1880,7 @@ export default class extends Controller {
         const after = text.substring(end)
         textarea.value = before + indent + after
         textarea.selectionStart = textarea.selectionEnd = start + indent.length
-        this.onTextareaInput()
+        this.triggerTextareaInput()
       }
       return
     }
@@ -1865,7 +1907,7 @@ export default class extends Controller {
     textarea.selectionStart = lineStart
     textarea.selectionEnd = lineEnd + lengthDiff
 
-    this.onTextareaInput()
+    this.triggerTextareaInput()
   }
 
   // === Text Format Menu ===
