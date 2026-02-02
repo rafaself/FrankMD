@@ -81,6 +81,8 @@ export default class extends Controller {
     this._lastRenderedContent = null // Cache to skip identical content updates
     this._scrollSource = null // Track who initiated the scroll: 'editor' or 'preview'
     this._scrollSourceTimeout = null
+    this._isUpdatingContent = false // Prevents preview scroll from syncing to editor during content updates
+    this._contentUpdateTimeout = null
     this.applyZoom()
   }
 
@@ -94,6 +96,9 @@ export default class extends Controller {
     if (this._scrollSourceTimeout) {
       clearTimeout(this._scrollSourceTimeout)
     }
+    if (this._contentUpdateTimeout) {
+      clearTimeout(this._contentUpdateTimeout)
+    }
     this.editorTextarea = null
   }
 
@@ -104,9 +109,10 @@ export default class extends Controller {
       clearTimeout(this._scrollSourceTimeout)
     }
     // Clear flag after scroll animations complete (smooth scroll can take 300ms+)
+    // Use 400ms to cover debounced render (150ms) + smooth scroll (300ms)
     this._scrollSourceTimeout = setTimeout(() => {
       this._scrollSource = null
-    }, 150)
+    }, 400)
   }
 
   // Mark that scroll was initiated by preview (prevents reverse sync)
@@ -117,16 +123,21 @@ export default class extends Controller {
     }
     this._scrollSourceTimeout = setTimeout(() => {
       this._scrollSource = null
-    }, 150)
+    }, 400)
   }
 
   // Handle scroll event on preview content - sync to editor
+  // IMPORTANT: This should ONLY sync to editor when user explicitly scrolls the preview
+  // It should NOT sync during content updates (editing), which would disrupt the editor
   onPreviewScroll() {
     if (!this.syncScrollEnabledValue) return
     if (!this.isVisible) return
 
     // Don't sync back if this scroll was caused by editor sync
     if (this._scrollSource === "editor") return
+
+    // Don't sync during content updates - only explicit user scroll should sync to editor
+    if (this._isUpdatingContent) return
 
     // Mark that preview initiated this scroll
     this._markScrollFromPreview()
@@ -205,6 +216,12 @@ export default class extends Controller {
     if (!this.isVisible) return
     if (!this.hasContentTarget) return
 
+    // Mark that we're updating content - prevents preview scroll from syncing to editor
+    this._isUpdatingContent = true
+    if (this._contentUpdateTimeout) {
+      clearTimeout(this._contentUpdateTimeout)
+    }
+
     // Strip frontmatter (YAML/TOML) before rendering
     const { content, frontmatterLines } = stripFrontmatter(markdownContent || "")
 
@@ -216,6 +233,12 @@ export default class extends Controller {
 
     // Store total lines for ratio fallback
     this.totalSourceLines = (markdownContent || "").split("\n").length
+
+    // Clear the content update flag after DOM settles and any scroll events have fired
+    // Use 100ms to allow for browser scroll events triggered by DOM changes
+    this._contentUpdateTimeout = setTimeout(() => {
+      this._isUpdatingContent = false
+    }, 100)
   }
 
   // Update preview with content and scroll sync
@@ -357,6 +380,25 @@ export default class extends Controller {
 
     this.syncScrollTimeout = requestAnimationFrame(() => {
       const preview = this.contentTarget
+      const previewScrollHeight = preview.scrollHeight - preview.clientHeight
+
+      if (previewScrollHeight <= 0) return
+
+      // Handle edge cases explicitly - ensure we reach exact top and bottom
+      // Use small threshold (0.01) to catch floating point imprecision
+      if (scrollRatio <= 0.01) {
+        if (preview.scrollTop !== 0) {
+          preview.scrollTop = 0
+        }
+        return
+      }
+
+      if (scrollRatio >= 0.99) {
+        if (Math.abs(preview.scrollTop - previewScrollHeight) > 1) {
+          preview.scrollTop = previewScrollHeight
+        }
+        return
+      }
 
       // Try line-based sync first (more accurate with images/embeds)
       if (this.totalSourceLines > 1) {
@@ -369,26 +411,20 @@ export default class extends Controller {
         if (targetElement) {
           // Calculate scroll position to show target element at top
           const elementTop = targetElement.offsetTop
-          const previewScrollHeight = preview.scrollHeight - preview.clientHeight
 
-          if (previewScrollHeight > 0) {
-            // Clamp to valid scroll range
-            const targetScroll = Math.max(0, Math.min(elementTop, previewScrollHeight))
+          // Clamp to valid scroll range
+          const targetScroll = Math.max(0, Math.min(elementTop, previewScrollHeight))
 
-            // Only scroll if change is significant (prevents jitter)
-            if (Math.abs(preview.scrollTop - targetScroll) > 5) {
-              preview.scrollTop = targetScroll
-            }
+          // Only scroll if change is significant (prevents jitter)
+          if (Math.abs(preview.scrollTop - targetScroll) > 5) {
+            preview.scrollTop = targetScroll
           }
           return
         }
       }
 
       // Fallback to ratio-based sync
-      const previewScrollHeight = preview.scrollHeight - preview.clientHeight
-      if (previewScrollHeight > 0) {
-        preview.scrollTop = scrollRatio * previewScrollHeight
-      }
+      preview.scrollTop = scrollRatio * previewScrollHeight
     })
   }
 

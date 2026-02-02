@@ -638,9 +638,10 @@ export default class extends Controller {
       clearTimeout(this._scrollSourceTimeout)
     }
     // Clear flag after scroll animations complete (smooth scroll can take 300ms+)
+    // Use 400ms to cover debounced render (150ms) + smooth scroll (300ms)
     this._scrollSourceTimeout = setTimeout(() => {
       this._scrollSource = null
-    }, 150)
+    }, 400)
   }
 
   // Mark that scroll was initiated by preview (prevents reverse sync)
@@ -651,22 +652,31 @@ export default class extends Controller {
     }
     this._scrollSourceTimeout = setTimeout(() => {
       this._scrollSource = null
-    }, 150)
+    }, 400)
   }
 
-  // Update preview and sync scroll to cursor position
+  // Update preview content only - does NOT sync scroll
+  // Scroll sync only happens via onEditorScroll when user explicitly scrolls
+  // This prevents editor from being disrupted during typing
   updatePreviewWithSync() {
     const previewController = this.getPreviewController()
     if (!previewController || !previewController.isVisible) return
 
     const codemirrorController = this.getCodemirrorController()
     const content = getEditorContent(codemirrorController, this.hasTextareaTarget ? this.textareaTarget : null)
-    const cursorInfo = codemirrorController ? codemirrorController.getCursorPosition() : { offset: 0 }
 
-    previewController.updateWithSync(content, {
-      cursorPos: cursorInfo.offset,
-      typewriterMode: this.typewriterModeEnabled
-    })
+    // Only render content - no scroll syncing during content changes
+    // The only exception is typewriter mode which needs cursor centering
+    if (this.typewriterModeEnabled) {
+      const cursorInfo = codemirrorController ? codemirrorController.getCursorPosition() : { offset: 0 }
+      previewController.updateWithSync(content, {
+        cursorPos: cursorInfo.offset,
+        typewriterMode: true
+      })
+    } else {
+      // Just render content without any scroll sync
+      previewController.render(content)
+    }
   }
 
   // Check if cursor is in a markdown table (debounced to avoid performance issues)
@@ -925,16 +935,9 @@ export default class extends Controller {
     const codemirrorController = this.getCodemirrorController()
     const content = getEditorContent(codemirrorController, this.hasTextareaTarget ? this.textareaTarget : null)
 
-    // Build scroll data for preview controller
-    const scrollData = { typewriterMode: this.typewriterModeEnabled }
-
-    if (this.typewriterModeEnabled && codemirrorController) {
-      const cursorInfo = codemirrorController.getCursorInfo()
-      scrollData.currentLine = cursorInfo.currentLine
-      scrollData.totalLines = cursorInfo.totalLines
-    }
-
-    previewController.update(content, scrollData)
+    // Just render content - no scroll syncing
+    // Scroll sync only happens via explicit scroll events
+    previewController.render(content)
   }
 
   setupSyncScroll() {
@@ -1705,13 +1708,22 @@ export default class extends Controller {
       if (previewController && this.hasTextareaTarget) {
         previewController.setupEditorSync(this.textareaTarget)
       }
+      // Only render content - don't auto-scroll
+      // Let the user's current scroll position determine where to sync
       this.updatePreview()
-      setTimeout(() => this.syncPreviewScrollToCursor(), 50)
+      // Sync preview to editor's current scroll position (not cursor)
+      const codemirrorController = this.getCodemirrorController()
+      if (codemirrorController && previewController) {
+        const scrollRatio = codemirrorController.getScrollRatio()
+        previewController.syncScrollRatio(scrollRatio)
+      }
     }
     this.scheduleLineNumberUpdate()
   }
 
   // Handle preview scroll event - sync editor to preview position
+  // IMPORTANT: This is only called when user explicitly scrolls the preview
+  // The preview_controller filters out scroll events during content updates
   onPreviewScroll(event) {
     const codemirrorController = this.getCodemirrorController()
     if (!codemirrorController) return
@@ -1726,6 +1738,21 @@ export default class extends Controller {
     const scrollInfo = codemirrorController.getScrollInfo()
     const maxScroll = scrollInfo.height - scrollInfo.clientHeight
     if (maxScroll <= 0) return
+
+    // Handle edge cases explicitly - ensure we reach exact top and bottom
+    if (scrollRatio <= 0.01) {
+      if (scrollInfo.top !== 0) {
+        codemirrorController.scrollTo(0)
+      }
+      return
+    }
+
+    if (scrollRatio >= 0.99) {
+      if (Math.abs(scrollInfo.top - maxScroll) > 1) {
+        codemirrorController.scrollTo(maxScroll)
+      }
+      return
+    }
 
     let targetScroll
 
