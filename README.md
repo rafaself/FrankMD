@@ -235,27 +235,23 @@ docker rm -f frankmd
 
 ### Using Docker Compose
 
-For a more permanent setup, create a `docker-compose.yml`:
-
-```yaml
-services:
-  frankmd:
-    image: akitaonrails/frankmd:latest
-    container_name: frankmd
-    restart: unless-stopped
-    ports:
-      - "7591:80"
-    volumes:
-      - ./notes:/rails/notes
-    environment:
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
-```
+For a more permanent setup, use the `docker-compose.yml` in this repo:
 
 ```bash
-# Generate secret and start
-echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" > .env
+# Copy defaults and set required values
+cp .env.example .env
+echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" >> .env
+echo "UID=$(id -u)" >> .env
+echo "GID=$(id -g)" >> .env
+
+# Ensure notes directory exists
+mkdir -p notes
+
+# Start
 docker compose up -d
 ```
+
+**Note:** Run Docker without `sudo` (use the `docker` group) to avoid creating root-owned bind mounts. If you use a custom `NOTES_PATH`, ensure the directory exists and is writable by the UID/GID above.
 
 ## Configuration
 
@@ -358,7 +354,7 @@ Environment variables serve as global defaults. They're useful for Docker deploy
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NOTES_PATH` | Directory where notes are stored | `./notes` |
+| `NOTES_PATH` | Directory where notes are stored (must be writable by UID/GID when using Docker) | `./notes` |
 | `IMAGES_PATH` | Directory for local images | (disabled) |
 | `FRANKMD_LOCALE` | Default language (en, pt-BR, pt-PT, es, he, ja, ko) | en |
 | `SECRET_KEY_BASE` | Rails secret key (required in production) | - |

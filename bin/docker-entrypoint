@@ -6,4 +6,29 @@ if [ -z "$SECRET_KEY_BASE" ]; then
   export SECRET_KEY_BASE=$(openssl rand -hex 64)
 fi
 
+notes_path="${NOTES_PATH:-/rails/notes}"
+
+if [ ! -d "$notes_path" ]; then
+  cat >&2 <<EOF
+FrankMD error: NOTES_PATH directory does not exist: $notes_path
+Create it and ensure it's writable by UID $(id -u):$(id -g).
+Example:
+  mkdir -p "$notes_path"
+  chown -R $(id -u):$(id -g) "$notes_path"
+If using Docker Compose, set UID/GID in .env and avoid running Docker with sudo.
+EOF
+  exit 1
+fi
+
+if [ ! -w "$notes_path" ]; then
+  cat >&2 <<EOF
+FrankMD error: NOTES_PATH is not writable: $notes_path
+This container runs as UID $(id -u):$(id -g). Fix ownership/permissions on the host.
+Example:
+  chown -R $(id -u):$(id -g) "$notes_path"
+If using Docker Compose, set UID/GID in .env and avoid running Docker with sudo.
+EOF
+  exit 1
+fi
+
 exec "${@}"
