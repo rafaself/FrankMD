@@ -99,6 +99,7 @@ en:
 
   # Status messages
   status:
+    copied_to_clipboard: "Content copied to clipboard"
     saved: "Saved"
     unsaved: "Unsaved changes"
     error_saving: "Error saving"

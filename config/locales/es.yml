@@ -99,6 +99,7 @@ es:
 
   # Status messages
   status:
+    copied_to_clipboard: "Contenido copiado al portapapeles"
     saved: "Guardado"
     unsaved: "Cambios sin guardar"
     error_saving: "Error al guardar"

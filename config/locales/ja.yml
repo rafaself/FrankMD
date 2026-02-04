@@ -99,6 +99,7 @@ ja:
 
   # Status messages
   status:
+    copied_to_clipboard: "クリップボードにコピーしました"
     saved: "保存済み"
     unsaved: "未保存の変更"
     error_saving: "保存エラー"

@@ -96,6 +96,7 @@ he:
 
   # הודעות סטטוס
   status:
+    copied_to_clipboard: "התוכן הועתק ללוח"
     saved: "נשמר"
     unsaved: "שינויים לא שמורים"
     error_saving: "שגיאה בשמירה"

@@ -99,6 +99,7 @@ pt-BR:
 
   # Mensagens de status
   status:
+    copied_to_clipboard: "Conteúdo copiado para a área de transferência"
     saved: "Salvo"
     unsaved: "Alterações não salvas"
     error_saving: "Erro ao salvar"
