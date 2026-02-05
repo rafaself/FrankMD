@@ -45,6 +45,7 @@
 
 # Ignore development files
 /.devcontainer
+/notes/
 
 # Ignore Docker-related files
 /.dockerignore
