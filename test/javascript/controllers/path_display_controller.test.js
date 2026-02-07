@@ -94,18 +94,22 @@ describe("PathDisplayController", () => {
       expect(navigator.clipboard.writeText).not.toHaveBeenCalled()
     })
 
-    it("adds copied class temporarily", async () => {
+    it("shows toast notification temporarily", async () => {
       vi.useFakeTimers()
       controller.textTarget.dataset.fullPath = "test.md"
 
       controller.copy()
 
+      // Wait for clipboard promise to resolve
       await vi.waitFor(() => {
-        expect(element.classList.contains("copied")).toBe(true)
+        const toast = document.getElementById("app-toast")
+        expect(toast).toBeTruthy()
+        expect(toast.textContent).toBe("status.copied_to_clipboard")
       })
 
-      vi.advanceTimersByTime(1500)
-      expect(element.classList.contains("copied")).toBe(false)
+      // Toast should be removed after duration + fade out time
+      vi.advanceTimersByTime(2300)
+      expect(document.getElementById("app-toast")).toBeFalsy()
 
       vi.useRealTimers()
     })

@@ -83,15 +83,43 @@ export default class extends Controller {
     if (!fullPath) return
 
     navigator.clipboard.writeText(fullPath).then(() => {
-      // Show copied feedback
-      this.element.dataset.copiedText = window.t("status.copied")
-      this.element.classList.add("copied")
-      setTimeout(() => {
-        this.element.classList.remove("copied")
-      }, 1500)
+      // Show toast feedback
+      this.showToast(window.t("status.copied_to_clipboard"))
     }).catch(err => {
       console.error("Failed to copy path:", err)
     })
+  }
+
+  // Show a toast notification that auto-dismisses
+  showToast(message, duration = 2000) {
+    // Remove any existing toast
+    const existingToast = document.getElementById("app-toast")
+    if (existingToast) {
+      existingToast.remove()
+    }
+
+    // Create toast element
+    const toast = document.createElement("div")
+    toast.id = "app-toast"
+    toast.className = "app-toast"
+    toast.setAttribute("role", "status")
+    toast.setAttribute("aria-live", "polite")
+    toast.textContent = message
+
+    document.body.appendChild(toast)
+
+    // Trigger animation after append
+    requestAnimationFrame(() => {
+      toast.classList.add("app-toast--visible")
+    })
+
+    // Auto-dismiss
+    setTimeout(() => {
+      toast.classList.remove("app-toast--visible")
+      toast.classList.add("app-toast--hiding")
+      // Remove from DOM after fade out animation
+      setTimeout(() => toast.remove(), 300)
+    }, duration)
   }
 
   // Show full path on hover (when truncated)

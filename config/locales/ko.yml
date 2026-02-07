@@ -99,6 +99,7 @@ ko:
 
   # 상태 메시지
   status:
+    copied_to_clipboard: "클립보드에 복사되었습니다"
     saved: "저장됨"
     unsaved: "저장되지 않은 변경사항"
     error_saving: "저장 오류"

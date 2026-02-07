@@ -72,25 +72,62 @@
     opacity: 1;
   }
 
-  /* Copied feedback toast */
-  .path-container.copied::after {
-    content: attr(data-copied-text);
-    position: absolute;
-    left: 50%;
-    top: -1.5rem;
-    transform: translateX(-50%);
-    background: var(--theme-accent);
-    color: white;
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    animation: fade-out 1.5s ease forwards;
+}
+
+/*
+ * Global toast notification
+ * Fixed position, bottom-center, responsive with proper text wrapping
+ */
+.app-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0.5rem);
+  max-width: min(90vw, 420px);
+  padding: 0.75rem 1rem;
+  background: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-accent) 92%, transparent);
+  color: white;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  /* Text wrapping for long translations */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  /* Animation states */
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.app-toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.app-toast--hiding {
+  opacity: 0;
+  transform: translateX(-50%) translateY(0.5rem);
+}
+
+/* Ensure toast is visible on smaller screens */
+@media (max-width: 480px) {
+  .app-toast {
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+    bottom: 0.5rem;
+    transform: translateY(0.5rem);
   }
 
-  @keyframes fade-out {
-    0% { opacity: 1; }
-    70% { opacity: 1; }
-    100% { opacity: 0; }
+  .app-toast--visible {
+    transform: translateY(0);
+  }
+
+  .app-toast--hiding {
+    transform: translateY(0.5rem);
   }
 }
