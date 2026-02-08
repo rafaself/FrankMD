@@ -115,7 +115,8 @@ class ImagesService
         # The object was still uploaded successfully
       end
 
-      "https://#{bucket}.s3.#{region}.amazonaws.com/#{key}"
+      encoded_key = key.split("/").map { |part| ERB::Util.url_encode(part) }.join("/")
+      "https://#{bucket}.s3.#{region}.amazonaws.com/#{encoded_key}"
     end
 
     # Upload a file from browser (local folder picker)
@@ -257,7 +258,8 @@ class ImagesService
         # Bucket has ACLs disabled, which is fine
       end
 
-      "https://#{bucket}.s3.#{region}.amazonaws.com/#{key}"
+      encoded_key = key.split("/").map { |part| ERB::Util.url_encode(part) }.join("/")
+      "https://#{bucket}.s3.#{region}.amazonaws.com/#{encoded_key}"
     end
 
     private
@@ -425,7 +427,8 @@ class ImagesService
         # Bucket has ACLs disabled, which is fine
       end
 
-      { url: "https://#{bucket}.s3.#{region}.amazonaws.com/#{key}" }
+      encoded_key = key.split("/").map { |part| ERB::Util.url_encode(part) }.join("/")
+      { url: "https://#{bucket}.s3.#{region}.amazonaws.com/#{encoded_key}" }
     end
   end
 end

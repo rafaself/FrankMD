@@ -358,6 +358,21 @@ class ImagesServiceS3Test < ActiveSupport::TestCase
     assert_match %r{^https://test-bucket\.s3\.us-east-1\.amazonaws\.com/frankmd/\d{4}/\d{2}/upload_test\.jpg$}, result
   end
 
+  test "upload_to_s3 encodes special characters in URL" do
+    create_test_image("my photo (1).jpg", "image content")
+
+    mock_client = stub
+    mock_client.stubs(:put_object).returns(nil)
+
+    Aws::S3::Client.stubs(:new).returns(mock_client)
+
+    result = ImagesService.upload_to_s3("my photo (1).jpg")
+
+    assert result.present?
+    assert_includes result, "my%20photo%20%281%29.jpg"
+    refute_includes result, " "
+  end
+
   test "upload_to_s3 handles ACL not supported error gracefully" do
     create_test_image("acl_test.jpg", "image data")
 
