@@ -336,15 +336,11 @@ class ImagesService
         # Calculate resize percentage from ratio (e.g., 0.5 -> "50%")
         resize_percent = "#{(ratio * 100).to_i}%"
 
-        # Use ImageMagick to resize and compress to 70% quality
-        # -resize X% reduces dimensions by the specified percentage
-        # -quality 70 sets JPEG compression quality
-        # -strip removes metadata
         cmd = [
           "convert",
           source_path.to_s,
           "-resize", resize_percent,
-          "-quality", "70",
+          "-quality", "95",
           "-strip",
           output_file.path
         ]
