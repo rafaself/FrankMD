@@ -38,7 +38,9 @@ fed() {
       FRANKMD_LOCALE
     )
     for var in "${env_vars[@]}"; do
-      [[ -n "${!var}" ]] && env_flags+=(-e "$var")
+      local val
+      eval "val=\"\${$var:-}\""
+      [[ -n "$val" ]] && env_flags+=(-e "$var=$val")
     done
 
     docker run -d --name frankmd --rm \
