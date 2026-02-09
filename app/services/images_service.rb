@@ -322,26 +322,28 @@ class ImagesService
     def resize_and_compress(source_path, original_name = nil, ratio = 0.5)
       require "tempfile"
       require "open3"
+      require "fileutils"
 
       original_name ||= source_path.basename.to_s
-      ratio ||= 0.5  # Default to 50% if nil
+      resize_arg = imagemagick_resize_arg(ratio)
 
       # Change extension to .jpg for compressed output
       base_name = File.basename(original_name, ".*")
       output_name = "#{base_name}.jpg"
 
-      # Create temp file for output
+      # Use internal temp files to avoid passing user-controlled paths to ImageMagick.
+      source_file = Tempfile.new([ "frankmd_source", source_path.extname.presence || ".img" ])
       output_file = Tempfile.new([ "frankmd_resized", ".jpg" ])
       begin
+        source_file.close
         output_file.close
 
-        # Calculate resize percentage from ratio (e.g., 0.5 -> "50%")
-        resize_percent = "#{(ratio * 100).to_i}%"
+        FileUtils.cp(source_path.to_s, source_file.path)
 
         cmd = [
           "convert",
-          source_path.to_s,
-          "-resize", resize_percent,
+          source_file.path,
+          "-resize", resize_arg,
           "-quality", "95",
           "-strip",
           output_file.path
@@ -358,6 +360,7 @@ class ImagesService
         file_content = File.binread(output_file.path)
         [ file_content, "image/jpeg", output_name ]
       ensure
+        source_file.unlink
         output_file.unlink
       end
     end
@@ -388,6 +391,18 @@ class ImagesService
         dest_path = images_dir.join(dest_filename)
         FileUtils.cp(temp_path, dest_path)
         { url: "images/#{dest_filename}" }
+      end
+    end
+
+    def imagemagick_resize_arg(ratio)
+      case ratio.to_s
+      when "0.25", "0.250", "25", "25%" then "25%"
+      when "0.33", "0.333", "33", "33%" then "33%"
+      when "0.5", "0.50", "50", "50%", "true" then "50%"
+      when "0.67", "0.666", "0.667", "67", "67%" then "67%"
+      when "0.75", "0.750", "75", "75%" then "75%"
+      when "1", "1.0", "1.00", "100", "100%" then "100%"
+      else "50%"
       end
     end
 
