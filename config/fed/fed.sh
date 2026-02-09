@@ -2,8 +2,32 @@
 # Source this file in your ~/.bashrc or ~/.zshrc:
 #   source ~/.config/frankmd/fed.sh
 
-# Default browser (override with FRANKMD_BROWSER)
-: "${FRANKMD_BROWSER:=brave}"
+# Detect the best available browser.
+# Override with: export FRANKMD_BROWSER=brave
+_fed_find_browser() {
+  if [[ -n "${FRANKMD_BROWSER:-}" ]]; then
+    if command -v "$FRANKMD_BROWSER" >/dev/null 2>&1; then
+      echo "$FRANKMD_BROWSER"
+      return
+    fi
+    echo "[fed] Warning: FRANKMD_BROWSER='$FRANKMD_BROWSER' not found, auto-detecting..." >&2
+  fi
+
+  local candidates=(
+    chromium chromium-browser
+    firefox firefox-esr
+    brave-browser brave
+    google-chrome-stable google-chrome
+    microsoft-edge-stable microsoft-edge
+  )
+  for cmd in "${candidates[@]}"; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      echo "$cmd"
+      return
+    fi
+  done
+  return 1
+}
 
 # Open FrankMD with a notes directory
 fed() {
@@ -78,8 +102,22 @@ fed() {
       akitaonrails/frankmd:latest >/dev/null
   fi
 
+  # Detect browser
+  local browser
+  browser=$(_fed_find_browser)
+  if [[ -z "$browser" ]]; then
+    echo "[fed] Error: no supported browser found." >&2
+    echo "[fed] Install chromium, firefox, brave, google-chrome, or microsoft-edge," >&2
+    echo "[fed] or set FRANKMD_BROWSER to your browser command." >&2
+    return 1
+  fi
+
   # Open browser with splash (polls until Rails is ready)
-  "$FRANKMD_BROWSER" --app="file://$splash"
+  local url="file://$splash"
+  case "$browser" in
+    firefox*) "$browser" --ssb="$url" ;;
+    *)        "$browser" --app="$url" ;;
+  esac
 }
 
 # Update FrankMD Docker image

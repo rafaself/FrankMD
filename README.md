@@ -208,12 +208,14 @@ cp ~/.config/frankmd/env.example ~/.config/frankmd/env
 export FRANKMD_ENV=~/.config/frankmd/env
 ```
 
-### 4. Using a Different Browser (Optional)
+### 4. Browser (Optional)
 
-Set `FRANKMD_BROWSER` in your `~/.bashrc`:
+FrankMD auto-detects your browser in this order: **Chromium** → Firefox → Brave → Chrome → Edge. The first one found is used.
+
+To override, set `FRANKMD_BROWSER` in your `~/.bashrc` or `~/.zshrc`:
 
 ```bash
-export FRANKMD_BROWSER=chromium        # or google-chrome, microsoft-edge, firefox
+export FRANKMD_BROWSER=brave           # or chromium, google-chrome, microsoft-edge, firefox
 ```
 
 For Firefox, enable SSB mode first: `about:config` → `browser.ssb.enabled` = `true`
