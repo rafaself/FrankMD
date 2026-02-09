@@ -1247,12 +1247,23 @@ export default class extends Controller {
   onFileRenamed(event) {
     const { oldPath, newPath, type } = event.detail
 
+    if (type === "folder") {
+      // Preserve expand/collapse state for renamed folder and its descendants.
+      this.expandedFolders = new Set(
+        Array.from(this.expandedFolders, (path) => {
+          if (path === oldPath || path.startsWith(oldPath + "/")) {
+            return `${newPath}${path.slice(oldPath.length)}`
+          }
+          return path
+        })
+      )
+    }
+
     // For folder renames, check if current file is inside the renamed folder
     if (type === "folder" && this.currentFile?.startsWith(oldPath + "/")) {
-      const newFilePath = this.currentFile.replace(oldPath, newPath)
-      // Navigate to new URL to force full refresh
-      window.location.href = `/notes/${encodePath(newFilePath)}`
-      return
+      this.currentFile = this.currentFile.replace(oldPath, newPath)
+      this.updatePathDisplay(this.currentFile.replace(/\.md$/, ""))
+      this.updateUrl(this.currentFile)
     }
 
     // Update current file if it was the renamed file
