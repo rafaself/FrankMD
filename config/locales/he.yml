@@ -117,6 +117,7 @@ he:
     content_loss_warning: "זוהתה מחיקת תוכן גדולה. לחץ Ctrl+Z לביטול אם זה היה בטעות."
     undo: "בטל"
     save_anyway: "שמור בכל זאת"
+    offline_backup_saved: "גיבוי מקומי נשמר"
 
   # כותרות ותוכן דיאלוגים
   dialogs:
@@ -399,6 +400,16 @@ he:
       search_placeholder: "חפש אימוג'ים..."
       tab_emoji: "אימוג'י"
       tab_emoticons: "אמוטיקונים"
+
+    # Recovery diff dialog
+    recovery:
+      title: "שחזור גיבוי לא מקוון"
+      server_version: "גרסת השרת"
+      backup_version: "גיבוי מקומי"
+      server_hint: "(קובץ נוכחי)"
+      backup_hint: "(נשמר במצב לא מקוון)"
+      use_server: "השתמש בגרסת השרת"
+      restore_backup: "שחזר גיבוי"
 
   # הודעות שגיאה
   errors:

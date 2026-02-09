@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { Application } from "@hotwired/stimulus"
-import { JSDOM } from "jsdom"
+import { setupJsdomGlobals } from "../helpers/jsdom_globals.js"
 import S3OptionController from "../../../app/javascript/controllers/s3_option_controller.js"
 
 describe("S3OptionController", () => {
@@ -9,12 +9,7 @@ describe("S3OptionController", () => {
   let element
 
   beforeEach(() => {
-    const dom = new JSDOM("<!doctype html><html><body></body></html>")
-    global.window = dom.window
-    global.document = dom.window.document
-    global.Element = dom.window.Element
-    global.HTMLElement = dom.window.HTMLElement
-    global.MutationObserver = dom.window.MutationObserver
+    setupJsdomGlobals()
 
     document.body.innerHTML = `
       <div data-controller="s3-option">
@@ -151,12 +146,7 @@ describe("S3OptionController without targets", () => {
   let element
 
   beforeEach(() => {
-    const dom = new JSDOM("<!doctype html><html><body></body></html>")
-    global.window = dom.window
-    global.document = dom.window.document
-    global.Element = dom.window.Element
-    global.HTMLElement = dom.window.HTMLElement
-    global.MutationObserver = dom.window.MutationObserver
+    setupJsdomGlobals()
 
     document.body.innerHTML = `
       <div data-controller="s3-option">

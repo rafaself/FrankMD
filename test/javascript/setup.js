@@ -1,5 +1,16 @@
 // Test setup file for Vitest
 // Provides mocks for DOM APIs not supported in JSDOM
+import { vi, beforeEach } from "vitest"
+
+// Suppress console.error and console.warn globally to keep test output clean.
+// Tests exercising error paths can still assert on them:
+//   expect(console.error).toHaveBeenCalledWith(...)
+// The spies are restored by vi.restoreAllMocks() in each test's afterEach,
+// then re-applied by this beforeEach for the next test.
+beforeEach(() => {
+  vi.spyOn(console, "error").mockImplementation(() => {})
+  vi.spyOn(console, "warn").mockImplementation(() => {})
+})
 
 // Mock Range.getClientRects for CodeMirror compatibility
 // JSDOM doesn't implement getClientRects, which CodeMirror uses for measurements

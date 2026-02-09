@@ -404,6 +404,135 @@ describe("AppController — Content Loss Detection", () => {
     })
   })
 
+  // === Offline localStorage backup tests ===
+
+  describe("offline localStorage backup", () => {
+    let mockBackupController
+
+    beforeEach(() => {
+      mockBackupController = {
+        save: vi.fn(),
+        check: vi.fn().mockReturnValue(null),
+        clear: vi.fn(),
+        clearAll: vi.fn()
+      }
+      controller.getOfflineBackupController = () => mockBackupController
+      controller.getRecoveryDiffController = () => null
+    })
+
+    it("onEditorChange while offline schedules backup (debounced)", async () => {
+      controller.currentFile = "test.md"
+      controller.isOffline = true
+      mockCodemirrorValue = "offline content"
+
+      controller.onEditorChange({ detail: { docChanged: true } })
+
+      // Backup should NOT be called immediately (debounced)
+      expect(mockBackupController.save).not.toHaveBeenCalled()
+
+      // Wait for debounce (1 second)
+      await new Promise((resolve) => setTimeout(resolve, 1100))
+
+      expect(mockBackupController.save).toHaveBeenCalledWith("test.md", "offline content")
+    })
+
+    it("onEditorChange while online does NOT backup", () => {
+      controller.currentFile = "test.md"
+      controller.isOffline = false
+      mockCodemirrorValue = "online content"
+
+      controller.onEditorChange({ detail: { docChanged: true } })
+
+      // Should not schedule backup when online
+      expect(controller._offlineBackupTimeout).toBeNull()
+    })
+
+    it("onConnectionLost immediately backs up unsaved content", () => {
+      controller.currentFile = "test.md"
+      controller._lastSavedContent = "saved version"
+      mockCodemirrorValue = "unsaved version"
+
+      controller.onConnectionLost()
+
+      expect(mockBackupController.save).toHaveBeenCalledWith("test.md", "unsaved version")
+    })
+
+    it("onConnectionLost does NOT backup if content unchanged", () => {
+      controller.currentFile = "test.md"
+      controller._lastSavedContent = "same content"
+      mockCodemirrorValue = "same content"
+
+      controller.onConnectionLost()
+
+      expect(mockBackupController.save).not.toHaveBeenCalled()
+    })
+
+    it("saveNow success clears backup", async () => {
+      controller.currentFile = "test.md"
+      controller._lastSavedContent = "old"
+      mockCodemirrorValue = "new"
+
+      global.fetch = vi.fn().mockResolvedValue({ ok: true })
+
+      await controller.saveNow()
+
+      expect(mockBackupController.clear).toHaveBeenCalledWith("test.md")
+    })
+
+    it("showEditor with differing backup shows recovery dialog", () => {
+      const mockRecoveryController = {
+        open: vi.fn()
+      }
+      controller.getRecoveryDiffController = () => mockRecoveryController
+      controller.currentFile = "test.md"
+
+      mockBackupController.check.mockReturnValue({
+        content: "backup content",
+        timestamp: 1700000000000
+      })
+
+      controller.showEditor("server content", "markdown")
+
+      expect(mockBackupController.check).toHaveBeenCalledWith("test.md", "server content")
+      expect(mockRecoveryController.open).toHaveBeenCalledWith({
+        path: "test.md",
+        serverContent: "server content",
+        backupContent: "backup content",
+        backupTimestamp: 1700000000000
+      })
+    })
+
+    it("showEditor with matching backup does NOT show dialog", () => {
+      const mockRecoveryController = {
+        open: vi.fn()
+      }
+      controller.getRecoveryDiffController = () => mockRecoveryController
+      controller.currentFile = "test.md"
+
+      // check returns null when content matches (auto-cleared)
+      mockBackupController.check.mockReturnValue(null)
+
+      controller.showEditor("server content", "markdown")
+
+      expect(mockRecoveryController.open).not.toHaveBeenCalled()
+    })
+
+    it("onRecoveryResolved with 'backup' sets editor content and marks unsaved", () => {
+      controller.currentFile = "test.md"
+      controller._lastSavedContent = "server content"
+      controller.hasUnsavedChanges = false
+
+      controller.onRecoveryResolved({
+        detail: { source: "backup", content: "backup content" }
+      })
+
+      expect(mockBackupController.clear).toHaveBeenCalledWith("test.md")
+      expect(mockCodemirrorController.setValue).toHaveBeenCalledWith("backup content")
+      expect(controller._lastSavedContent).toBeNull()
+      expect(controller.hasUnsavedChanges).toBe(true)
+    })
+  })
+
   describe("offline → in-flight save → online flow", () => {
     it("saves pending changes after reconnection even if in-flight save completed during offline", async () => {
       controller.currentFile = "test.md"

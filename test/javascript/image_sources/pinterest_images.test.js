@@ -90,6 +90,7 @@ describe("PinterestImageSource", () => {
 
       expect(result.error).toBe("Search failed. Please try again.")
       expect(source.results).toEqual([])
+      expect(console.error).toHaveBeenCalledWith("Pinterest search error:", expect.any(Error))
     })
   })
 

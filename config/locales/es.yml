@@ -120,6 +120,7 @@ es:
     content_loss_warning: "Se detectó una gran eliminación de contenido. Presiona Ctrl+Z para deshacer si fue accidental."
     undo: "Deshacer"
     save_anyway: "Guardar de Todos Modos"
+    offline_backup_saved: "Copia de seguridad local guardada"
 
   # Dialog titles and content
   dialogs:
@@ -427,6 +428,16 @@ es:
       search_placeholder: "Buscar emojis..."
       tab_emoji: "Emoji"
       tab_emoticons: "Emoticones"
+
+    # Recovery diff dialog
+    recovery:
+      title: "Recuperación de Copia de Seguridad Offline"
+      server_version: "Versión del Servidor"
+      backup_version: "Copia de Seguridad Local"
+      server_hint: "(archivo actual)"
+      backup_hint: "(guardado offline)"
+      use_server: "Usar Versión del Servidor"
+      restore_backup: "Restaurar Copia de Seguridad"
 
   # Error messages
   errors:

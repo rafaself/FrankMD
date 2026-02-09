@@ -62,6 +62,7 @@ export default class extends Controller {
     this._lastSaveTime = 0  // Track when we last saved
     this._contentLossWarningActive = false  // Content loss warning banner visible
     this._contentLossOverride = false  // User clicked "Save Anyway"
+    this._offlineBackupTimeout = null  // Debounce timer for offline localStorage backup
 
     // Editor customization - fonts in alphabetical order, Cascadia Code as default
     this.editorFonts = [
@@ -158,6 +159,7 @@ export default class extends Controller {
     if (this.configSaveTimeout) clearTimeout(this.configSaveTimeout)
     if (this._controllerCacheTimeout) clearTimeout(this._controllerCacheTimeout)
     if (this._tableCheckTimeout) clearTimeout(this._tableCheckTimeout)
+    if (this._offlineBackupTimeout) clearTimeout(this._offlineBackupTimeout)
 
     // Remove window/document event listeners
     if (this.boundPopstateHandler) {
@@ -257,6 +259,14 @@ export default class extends Controller {
 
   getEmojiPickerController() {
     return this._getCachedController("emoji-picker", '[data-controller~="emoji-picker"]')
+  }
+
+  getOfflineBackupController() {
+    return this._getCachedController("offline-backup", '[data-controller~="offline-backup"]')
+  }
+
+  getRecoveryDiffController() {
+    return this._getCachedController("recovery-diff", '[data-controller~="recovery-diff"]')
   }
 
   // === URL Management for Bookmarkable URLs ===
@@ -533,6 +543,9 @@ export default class extends Controller {
     this._lastSavedContent = content
     this.hasUnsavedChanges = false
 
+    // Check for offline backup that may differ from server version
+    this._checkOfflineBackup(content)
+
     // Set content via CodeMirror controller
     const codemirrorController = this.getCodemirrorController()
     if (codemirrorController) {
@@ -597,6 +610,10 @@ export default class extends Controller {
       if (lostPercent <= 0.2 || lostChars <= 50) {
         this.dismissContentLossWarning()
       }
+    }
+
+    if (this.isOffline && this.currentFile) {
+      this._scheduleOfflineBackup()
     }
 
     this.scheduleAutoSave()
@@ -733,6 +750,49 @@ export default class extends Controller {
     }
   }
 
+  // === Offline Backup ===
+
+  _scheduleOfflineBackup() {
+    if (this._offlineBackupTimeout) clearTimeout(this._offlineBackupTimeout)
+    this._offlineBackupTimeout = setTimeout(() => {
+      this._offlineBackupTimeout = null
+      const cm = this.getCodemirrorController()
+      const content = cm ? cm.getValue() : this.textareaTarget.value
+      const backup = this.getOfflineBackupController()
+      if (backup) backup.save(this.currentFile, content)
+    }, 1000)
+  }
+
+  _checkOfflineBackup(serverContent) {
+    const backup = this.getOfflineBackupController()
+    if (!backup) return
+    const data = backup.check(this.currentFile, serverContent)
+    if (!data) return
+    const recovery = this.getRecoveryDiffController()
+    if (recovery) {
+      recovery.open({
+        path: this.currentFile,
+        serverContent,
+        backupContent: data.content,
+        backupTimestamp: data.timestamp
+      })
+    }
+  }
+
+  onRecoveryResolved(event) {
+    const { source, content } = event.detail
+    const backup = this.getOfflineBackupController()
+    if (backup) backup.clear(this.currentFile)
+
+    if (source === "backup" && content) {
+      const cm = this.getCodemirrorController()
+      if (cm) cm.setValue(content)
+      this._lastSavedContent = null  // Force save — server doesn't have this content
+      this.hasUnsavedChanges = true
+      this.scheduleAutoSave()
+    }
+  }
+
   // Auto-save configuration
   static SAVE_DEBOUNCE_MS = 2000      // Wait 2 seconds after last keystroke
   static SAVE_MAX_INTERVAL_MS = 30000 // Force save every 30 seconds if continuously typing
@@ -842,6 +902,8 @@ export default class extends Controller {
       this._lastSaveTime = Date.now()
       this._contentLossOverride = false
       this.hasUnsavedChanges = false
+      const backupController = this.getOfflineBackupController()
+      if (backupController) backupController.clear(this.currentFile)
       this.showSaveStatus(window.t("status.saved"))
       setTimeout(() => this.showSaveStatus(""), 2000)
 
@@ -891,6 +953,16 @@ export default class extends Controller {
 
     // Use short status since full message is shown in the orange banner
     this.showSaveStatus(window.t("connection.disconnected"), true)
+
+    // Immediately backup current content to localStorage
+    if (this.currentFile) {
+      const cm = this.getCodemirrorController()
+      const content = cm ? cm.getValue() : ""
+      const backup = this.getOfflineBackupController()
+      if (backup && content && content !== this._lastSavedContent) {
+        backup.save(this.currentFile, content)
+      }
+    }
   }
 
   onConnectionRestored() {

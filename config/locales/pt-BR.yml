@@ -120,6 +120,7 @@ pt-BR:
     content_loss_warning: "Grande exclusão de conteúdo detectada. Pressione Ctrl+Z para desfazer se foi acidental."
     undo: "Desfazer"
     save_anyway: "Salvar Mesmo Assim"
+    offline_backup_saved: "Backup local salvo"
 
   # Status de conexão
   connection:
@@ -433,6 +434,16 @@ pt-BR:
       search_placeholder: "Buscar emojis..."
       tab_emoji: "Emoji"
       tab_emoticons: "Emoticons"
+
+    # Recovery diff dialog
+    recovery:
+      title: "Recuperação de Backup Offline"
+      server_version: "Versão do Servidor"
+      backup_version: "Backup Local"
+      server_hint: "(arquivo atual)"
+      backup_hint: "(salvo offline)"
+      use_server: "Usar Versão do Servidor"
+      restore_backup: "Restaurar Backup"
 
   # Mensagens de erro
   errors:

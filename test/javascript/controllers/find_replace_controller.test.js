@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { Application } from "@hotwired/stimulus"
-import { JSDOM } from "jsdom"
+import { setupJsdomGlobals } from "../helpers/jsdom_globals.js"
 import FindReplaceController from "../../../app/javascript/controllers/find_replace_controller.js"
 
 describe("FindReplaceController", () => {
@@ -10,16 +10,7 @@ describe("FindReplaceController", () => {
   let textarea
 
   beforeEach(() => {
-    const dom = new JSDOM("<!doctype html><html><body></body></html>")
-    global.window = dom.window
-    global.document = dom.window.document
-    global.Element = dom.window.Element
-    global.HTMLElement = dom.window.HTMLElement
-    global.HTMLDialogElement = dom.window.HTMLDialogElement || dom.window.HTMLElement
-    global.CustomEvent = dom.window.CustomEvent
-    global.getComputedStyle = dom.window.getComputedStyle
-    global.MutationObserver = dom.window.MutationObserver
-    global.Node = dom.window.Node
+    setupJsdomGlobals()
 
     window.t = vi.fn((key, options = {}) => {
       if (key === "dialogs.find_replace.match_count") {

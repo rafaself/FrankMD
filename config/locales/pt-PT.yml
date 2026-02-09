@@ -120,6 +120,7 @@ pt-PT:
     content_loss_warning: "Grande eliminação de conteúdo detetada. Prima Ctrl+Z para desfazer se foi acidental."
     undo: "Desfazer"
     save_anyway: "Guardar Mesmo Assim"
+    offline_backup_saved: "Cópia de segurança local guardada"
 
   # Títulos e conteúdo dos diálogos
   dialogs:
@@ -427,6 +428,16 @@ pt-PT:
       search_placeholder: "Pesquisar emojis..."
       tab_emoji: "Emoji"
       tab_emoticons: "Emoticons"
+
+    # Recovery diff dialog
+    recovery:
+      title: "Recuperação de Cópia de Segurança Offline"
+      server_version: "Versão do Servidor"
+      backup_version: "Cópia de Segurança Local"
+      server_hint: "(ficheiro atual)"
+      backup_hint: "(guardado offline)"
+      use_server: "Usar Versão do Servidor"
+      restore_backup: "Restaurar Cópia de Segurança"
 
   # Mensagens de erro
   errors:

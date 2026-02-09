@@ -120,6 +120,7 @@ ko:
     content_loss_warning: "대량의 콘텐츠 삭제가 감지되었습니다. 실수인 경우 Ctrl+Z를 눌러 되돌리세요."
     undo: "실행 취소"
     save_anyway: "그래도 저장"
+    offline_backup_saved: "로컬에 백업됨"
 
   # 다이얼로그 제목 및 내용
   dialogs:
@@ -427,6 +428,16 @@ ko:
       search_placeholder: "이모지 검색..."
       tab_emoji: "이모지"
       tab_emoticons: "이모티콘"
+
+    # Recovery diff dialog
+    recovery:
+      title: "오프라인 백업 복구"
+      server_version: "서버 버전"
+      backup_version: "로컬 백업"
+      server_hint: "(현재 파일)"
+      backup_hint: "(오프라인 저장)"
+      use_server: "서버 버전 사용"
+      restore_backup: "백업 복원"
 
   # 오류 메시지
   errors:

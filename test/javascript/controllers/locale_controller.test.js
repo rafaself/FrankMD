@@ -1,11 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from "vitest"
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { Application } from "@hotwired/stimulus"
-import { JSDOM } from "jsdom"
+import { setupJsdomGlobals } from "../helpers/jsdom_globals.js"
 
 // Set up global window before importing LocaleController (which sets window.t at module level)
-const initialDom = new JSDOM("<!doctype html><html><body></body></html>")
-global.window = initialDom.window
-global.document = initialDom.window.document
+setupJsdomGlobals()
 
 // Now import the controller (this will set window.t)
 const { default: LocaleController } = await import("../../../app/javascript/controllers/locale_controller.js")
@@ -16,13 +14,7 @@ describe("LocaleController", () => {
   let element
 
   beforeEach(() => {
-    const dom = new JSDOM("<!doctype html><html><body></body></html>")
-    global.window = dom.window
-    global.document = dom.window.document
-    global.Element = dom.window.Element
-    global.HTMLElement = dom.window.HTMLElement
-    global.CustomEvent = dom.window.CustomEvent
-    global.MutationObserver = dom.window.MutationObserver
+    setupJsdomGlobals()
 
     // Mock fetch for translations
     global.fetch = vi.fn().mockResolvedValue({
@@ -125,12 +117,11 @@ describe("LocaleController", () => {
     })
 
     it("handles fetch error gracefully", async () => {
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
       global.fetch = vi.fn().mockRejectedValue(new Error("Network error"))
 
       await controller.loadTranslations()
 
-      expect(consoleWarnSpy).toHaveBeenCalled()
+      expect(console.warn).toHaveBeenCalled()
     })
   })
 
@@ -325,9 +316,7 @@ describe("LocaleController", () => {
 
 describe("window.t() translation helper", () => {
   beforeEach(() => {
-    const dom = new JSDOM("<!doctype html><html><body></body></html>")
-    global.window = dom.window
-    global.document = dom.window.document
+    setupJsdomGlobals()
 
     // Re-define window.t for this test suite (it was defined at module load)
     window.t = function(key, options = {}) {

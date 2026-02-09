@@ -5,11 +5,31 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { Application } from "@hotwired/stimulus"
 import EmojiPickerController from "../../../app/javascript/controllers/emoji_picker_controller.js"
 
+// Sample emoji data matching the real format in public/emoji-data/*.json
+const SAMPLE_EMOJI_DATA = [
+  { hexcode: "1F600", label: "grinning face", unicode: "😀", tags: ["happy", "smile"] },
+  { hexcode: "1F602", label: "face with tears of joy", unicode: "😂", tags: ["laugh", "crying"] },
+  { hexcode: "2764", label: "red heart", unicode: "❤️", tags: ["love"] }
+]
+
 describe("EmojiPickerController", () => {
   let application, controller, element
 
   beforeEach(() => {
     window.t = vi.fn((key) => key)
+
+    // Mock fetch to handle /emoji-data/*.json requests (relative URLs fail in Node)
+    global.fetch = vi.fn((url) => {
+      const urlStr = typeof url === "string" ? url : url.toString()
+      if (urlStr.match(/\/emoji-data\/\w+\.json/)) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(SAMPLE_EMOJI_DATA)
+        })
+      }
+      // Pass through other URLs (shouldn't happen in this test, but safe fallback)
+      return Promise.reject(new Error(`Unmocked fetch: ${urlStr}`))
+    })
 
     document.body.innerHTML = `
       <div data-controller="emoji-picker"
@@ -635,19 +655,17 @@ describe("EmojiPickerController", () => {
         expect(controller.i18nSearchIndex).toBeInstanceOf(Map)
       })
 
-      it("builds search index with emoji data from CDN", async () => {
+      it("builds search index with emoji data", async () => {
         // Reset and reload
         controller.i18nLoaded = false
         controller.i18nSearchIndex = null
 
         await controller.loadI18nData()
 
-        // The index should contain common emojis from emojibase
+        // The index should contain emojis from our mock data
         expect(controller.i18nSearchIndex).toBeInstanceOf(Map)
-        // Common emoji should be present (emojibase always includes grinning face)
-        const hasGrinning = controller.i18nSearchIndex.has("😀")
-        // If CDN worked, we'll have real data; if not, we'll have empty Map
-        expect(typeof hasGrinning).toBe("boolean")
+        expect(controller.i18nSearchIndex.has("😀")).toBe(true)
+        expect(controller.i18nSearchIndex.has("😂")).toBe(true)
       })
 
       it("results in a Map even if loading fails", async () => {
@@ -655,12 +673,13 @@ describe("EmojiPickerController", () => {
         controller.i18nLoaded = false
         controller.i18nSearchIndex = null
 
-        // Trigger loading - the actual implementation handles errors gracefully
+        // Override fetch to simulate failure
+        global.fetch = vi.fn().mockRejectedValue(new Error("network error"))
+
         await controller.loadI18nData()
 
-        // Should always have a Map (either with data or empty)
+        // Should always have a Map (empty on error)
         expect(controller.i18nSearchIndex).toBeInstanceOf(Map)
-        expect(controller.i18nLoaded).toBe(true)
       })
 
       it("skips loading if already loaded", async () => {

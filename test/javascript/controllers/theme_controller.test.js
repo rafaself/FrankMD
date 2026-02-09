@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { Application } from "@hotwired/stimulus"
-import { JSDOM } from "jsdom"
+import { setupJsdomGlobals } from "../helpers/jsdom_globals.js"
 import ThemeController from "../../../app/javascript/controllers/theme_controller.js"
 
 describe("ThemeController", () => {
@@ -9,13 +9,7 @@ describe("ThemeController", () => {
   let element
 
   beforeEach(() => {
-    const dom = new JSDOM("<!doctype html><html><body></body></html>")
-    global.window = dom.window
-    global.document = dom.window.document
-    global.Element = dom.window.Element
-    global.HTMLElement = dom.window.HTMLElement
-    global.CustomEvent = dom.window.CustomEvent
-    global.MutationObserver = dom.window.MutationObserver
+    setupJsdomGlobals()
 
     // Mock matchMedia
     window.matchMedia = vi.fn().mockImplementation(query => ({
@@ -350,13 +344,7 @@ describe("ThemeController with system dark preference", () => {
   let element
 
   beforeEach(() => {
-    const dom = new JSDOM("<!doctype html><html><body></body></html>")
-    global.window = dom.window
-    global.document = dom.window.document
-    global.Element = dom.window.Element
-    global.HTMLElement = dom.window.HTMLElement
-    global.CustomEvent = dom.window.CustomEvent
-    global.MutationObserver = dom.window.MutationObserver
+    setupJsdomGlobals()
 
     // Mock matchMedia to prefer light
     window.matchMedia = vi.fn().mockImplementation(query => ({

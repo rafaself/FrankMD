@@ -120,6 +120,7 @@ ja:
     content_loss_warning: "大量のコンテンツ削除が検出されました。誤操作の場合はCtrl+Zで元に戻してください。"
     undo: "元に戻す"
     save_anyway: "そのまま保存"
+    offline_backup_saved: "ローカルにバックアップしました"
 
   # Dialog titles and content
   dialogs:
@@ -427,6 +428,16 @@ ja:
       search_placeholder: "絵文字を検索..."
       tab_emoji: "絵文字"
       tab_emoticons: "顔文字"
+
+    # Recovery diff dialog
+    recovery:
+      title: "オフラインバックアップの復元"
+      server_version: "サーバー版"
+      backup_version: "ローカルバックアップ"
+      server_hint: "(現在のファイル)"
+      backup_hint: "(オフラインで保存)"
+      use_server: "サーバー版を使用"
+      restore_backup: "バックアップを復元"
 
   # Error messages
   errors:

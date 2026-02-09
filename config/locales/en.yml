@@ -120,6 +120,7 @@ en:
     content_loss_warning: "Large content deletion detected. Press Ctrl+Z to undo if accidental."
     undo: "Undo"
     save_anyway: "Save Anyway"
+    offline_backup_saved: "Backed up locally"
 
   # Connection status
   connection:
@@ -436,6 +437,16 @@ en:
       search_placeholder: "Search emojis..."
       tab_emoji: "Emoji"
       tab_emoticons: "Emoticons"
+
+    # Recovery diff dialog
+    recovery:
+      title: "Offline Backup Recovery"
+      server_version: "Server Version"
+      backup_version: "Local Backup"
+      server_hint: "(current file)"
+      backup_hint: "(saved offline)"
+      use_server: "Use Server Version"
+      restore_backup: "Restore Backup"
 
   # Error messages
   errors:

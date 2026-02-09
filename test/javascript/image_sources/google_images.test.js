@@ -148,6 +148,7 @@ describe("GoogleImageSource", () => {
 
       expect(result.error).toBe("Search failed. Please try again.")
       expect(source.loading).toBe(false)
+      expect(console.error).toHaveBeenCalledWith("Google search error:", expect.any(Error))
     })
 
     it("returns appropriate message for empty results", async () => {
