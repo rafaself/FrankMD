@@ -117,6 +117,9 @@ es:
     enter_keywords_search: "Ingresa palabras clave y haz clic en Buscar o presiona Enter"
     type_to_search_regex: "Escribe para buscar en el contenido (soporta regex)"
     processing: "Procesando..."
+    content_loss_warning: "Se detectó una gran eliminación de contenido. Presiona Ctrl+Z para deshacer si fue accidental."
+    undo: "Deshacer"
+    save_anyway: "Guardar de Todos Modos"
 
   # Dialog titles and content
   dialogs:

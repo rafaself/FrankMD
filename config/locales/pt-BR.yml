@@ -117,6 +117,9 @@ pt-BR:
     enter_keywords_search: "Digite palavras-chave e clique em Buscar ou pressione Enter"
     type_to_search_regex: "Digite para buscar no conteúdo dos arquivos (suporta regex)"
     processing: "Processando..."
+    content_loss_warning: "Grande exclusão de conteúdo detectada. Pressione Ctrl+Z para desfazer se foi acidental."
+    undo: "Desfazer"
+    save_anyway: "Salvar Mesmo Assim"
 
   # Status de conexão
   connection:

@@ -117,6 +117,9 @@ ja:
     enter_keywords_search: "キーワードを入力して検索またはEnterを押してください"
     type_to_search_regex: "ファイル内を検索（正規表現対応）"
     processing: "処理中..."
+    content_loss_warning: "大量のコンテンツ削除が検出されました。誤操作の場合はCtrl+Zで元に戻してください。"
+    undo: "元に戻す"
+    save_anyway: "そのまま保存"
 
   # Dialog titles and content
   dialogs:

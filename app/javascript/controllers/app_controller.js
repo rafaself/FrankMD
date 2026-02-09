@@ -20,6 +20,7 @@ import {
   insertCodeBlock,
   insertVideoEmbed
 } from "lib/codemirror_content_insertion"
+import { undo } from "@codemirror/commands"
 
 export default class extends Controller {
   static targets = [
@@ -37,7 +38,8 @@ export default class extends Controller {
     "sidebarToggle",
     "aiButton",
     "editorWrapper",
-    "editorBody"
+    "editorBody",
+    "contentLossBanner"
   ]
 
   static values = {
@@ -55,8 +57,11 @@ export default class extends Controller {
     this.saveMaxIntervalTimeout = null  // Safety net for continuous typing
     this.isOffline = false
     this.hasUnsavedChanges = false
+    this._isSaving = false  // Prevents concurrent saveNow() calls
     this._lastSavedContent = null  // Track content to avoid redundant saves
     this._lastSaveTime = 0  // Track when we last saved
+    this._contentLossWarningActive = false  // Content loss warning banner visible
+    this._contentLossOverride = false  // User clicked "Save Anyway"
 
     // Editor customization - fonts in alphabetical order, Cascadia Code as default
     this.editorFonts = [
@@ -582,6 +587,18 @@ export default class extends Controller {
 
   // Handle CodeMirror editor change events
   onEditorChange(event) {
+    // Auto-dismiss content loss warning if content is restored (e.g., user pressed Ctrl+Z)
+    if (this._contentLossWarningActive && this._lastSavedContent) {
+      const codemirrorController = this.getCodemirrorController()
+      const currentContent = codemirrorController ? codemirrorController.getValue() : ""
+      const lostChars = this._lastSavedContent.length - currentContent.length
+      const lostPercent = this._lastSavedContent.length > 0 ? lostChars / this._lastSavedContent.length : 0
+
+      if (lostPercent <= 0.2 || lostChars <= 50) {
+        this.dismissContentLossWarning()
+      }
+    }
+
     this.scheduleAutoSave()
     this.scheduleStatsUpdate()
 
@@ -727,6 +744,12 @@ export default class extends Controller {
       return
     }
 
+    // Don't schedule saves while content loss warning is active
+    if (this._contentLossWarningActive) {
+      this.hasUnsavedChanges = true
+      return
+    }
+
     // Only show "unsaved" status once when transitioning from saved to unsaved
     if (!this.hasUnsavedChanges) {
       this.hasUnsavedChanges = true
@@ -762,6 +785,10 @@ export default class extends Controller {
 
     if (!this.currentFile) return
 
+    // Prevent concurrent saves — if a fetch is already in flight, skip.
+    // The post-save freshness check will reschedule if content changed.
+    if (this._isSaving) return
+
     // Clear both timers
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout)
@@ -784,6 +811,18 @@ export default class extends Controller {
       return
     }
 
+    // Content loss detection: warn if large portion of content was deleted
+    if (this._lastSavedContent && !this._contentLossOverride) {
+      const lostChars = this._lastSavedContent.length - content.length
+      const lostPercent = lostChars / this._lastSavedContent.length
+
+      if (lostPercent > 0.2 && lostChars > 50) {
+        this.showContentLossWarning()
+        return
+      }
+    }
+
+    this._isSaving = true
     try {
       const response = await fetch(`/notes/${encodePath(this.currentFile)}`, {
         method: "PATCH",
@@ -801,6 +840,7 @@ export default class extends Controller {
       // Track what we saved
       this._lastSavedContent = content
       this._lastSaveTime = Date.now()
+      this._contentLossOverride = false
       this.hasUnsavedChanges = false
       this.showSaveStatus(window.t("status.saved"))
       setTimeout(() => this.showSaveStatus(""), 2000)
@@ -809,9 +849,22 @@ export default class extends Controller {
       if (isConfigFile) {
         await this.reloadConfig()
       }
+
+      // Post-save freshness check: content may have changed during the fetch
+      // (user typed, or connection was lost and restored). Always flag unsaved
+      // so onConnectionRestored() or next scheduleAutoSave() picks it up.
+      const freshContent = codemirrorController ? codemirrorController.getValue() : this.textareaTarget.value
+      if (freshContent !== content) {
+        this.hasUnsavedChanges = true
+        if (!this.isOffline) {
+          this.scheduleAutoSave()
+        }
+      }
     } catch (error) {
       console.error("Error saving:", error)
       this.showSaveStatus(window.t("status.error_saving"), true)
+    } finally {
+      this._isSaving = false
     }
   }
 
@@ -848,6 +901,42 @@ export default class extends Controller {
     if (this.hasUnsavedChanges && this.currentFile) {
       this.saveNow()
     }
+  }
+
+  // === Content Loss Warning ===
+
+  showContentLossWarning() {
+    this._contentLossWarningActive = true
+    if (this.hasContentLossBannerTarget) {
+      this.contentLossBannerTarget.classList.remove("hidden")
+      this.contentLossBannerTarget.classList.add("flex")
+    }
+  }
+
+  dismissContentLossWarning() {
+    this._contentLossWarningActive = false
+    this._contentLossOverride = false
+    if (this.hasContentLossBannerTarget) {
+      this.contentLossBannerTarget.classList.add("hidden")
+      this.contentLossBannerTarget.classList.remove("flex")
+    }
+  }
+
+  undoContentLoss() {
+    const codemirrorController = this.getCodemirrorController()
+    if (codemirrorController) {
+      const view = codemirrorController.getEditorView()
+      if (view) {
+        undo(view)
+      }
+    }
+    this.dismissContentLossWarning()
+  }
+
+  saveAnywayAfterWarning() {
+    this.dismissContentLossWarning()
+    this._contentLossOverride = true
+    this.saveNow()
   }
 
   // Reload configuration from server and apply changes

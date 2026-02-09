@@ -117,6 +117,9 @@ en:
     enter_keywords_search: "Enter keywords and click Search or press Enter"
     type_to_search_regex: "Type to search in file contents (supports regex)"
     processing: "Processing..."
+    content_loss_warning: "Large content deletion detected. Press Ctrl+Z to undo if accidental."
+    undo: "Undo"
+    save_anyway: "Save Anyway"
 
   # Connection status
   connection:

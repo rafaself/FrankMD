@@ -7,18 +7,22 @@
      data-app-config-value="<%= (@config || {}).to_json %>">
 
   <!-- Connection Lost Banner -->
-  <div class="hidden bg-amber-500 dark:bg-amber-600 text-white px-4 py-2 text-sm flex items-center justify-center gap-3 z-50"
-       data-connection-monitor-target="banner">
-    <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-    </svg>
-    <span><%= t('connection.offline_message') %></span>
-    <button type="button"
-            data-action="click->connection-monitor#retry"
-            class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-medium">
-      <%= t('connection.retry') %>
-    </button>
-  </div>
+  <%= render "shared/warning_banner",
+      target_attr: 'data-connection-monitor-target="banner"',
+      message: t('connection.offline_message'),
+      icon_animate: "animate-pulse",
+      buttons: [
+        { label: t('connection.retry'), action: "click->connection-monitor#retry" }
+      ] %>
+
+  <!-- Content Loss Warning Banner -->
+  <%= render "shared/warning_banner",
+      target_attr: 'data-app-target="contentLossBanner"',
+      message: t('status.content_loss_warning'),
+      buttons: [
+        { label: t('status.undo'), action: "click->app#undoContentLoss" },
+        { label: t('status.save_anyway'), action: "click->app#saveAnywayAfterWarning" }
+      ] %>
 
   <%= render "notes/header" %>
 

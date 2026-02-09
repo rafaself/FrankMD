@@ -114,6 +114,9 @@ he:
     enter_keywords_search: "הזן מילות מפתח ולחץ חפש או Enter"
     type_to_search_regex: "הקלד לחיפוש בתוכן הקבצים (תומך בregex)"
     processing: "מעבד..."
+    content_loss_warning: "זוהתה מחיקת תוכן גדולה. לחץ Ctrl+Z לביטול אם זה היה בטעות."
+    undo: "בטל"
+    save_anyway: "שמור בכל זאת"
 
   # כותרות ותוכן דיאלוגים
   dialogs:

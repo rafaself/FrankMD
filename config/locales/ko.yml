@@ -117,6 +117,9 @@ ko:
     enter_keywords_search: "검색어를 입력하고 검색을 클릭하거나 Enter를 누르세요"
     type_to_search_regex: "파일 내용 검색 (정규식 지원)"
     processing: "처리 중..."
+    content_loss_warning: "대량의 콘텐츠 삭제가 감지되었습니다. 실수인 경우 Ctrl+Z를 눌러 되돌리세요."
+    undo: "실행 취소"
+    save_anyway: "그래도 저장"
 
   # 다이얼로그 제목 및 내용
   dialogs:
