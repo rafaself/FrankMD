@@ -839,8 +839,14 @@ Visit `http://localhost:3000`
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run ALL checks (lint + security + tests) — same as CI
+bin/ci
+
+# Run Ruby tests only
 bin/rails test
+
+# Run JavaScript tests only
+npx vitest run
 
 # Run specific test file
 bin/rails test test/controllers/notes_controller_test.rb
@@ -848,6 +854,8 @@ bin/rails test test/controllers/notes_controller_test.rb
 # Run with verbose output
 bin/rails test -v
 ```
+
+Always run `bin/ci` before pushing to ensure CI will pass.
 
 ### Project Structure
 
@@ -902,13 +910,40 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
+### Getting Started
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests (`bin/rails test`)
+3. Make your changes following the guidelines below
+4. Run `bin/ci` to verify everything passes
 5. Commit (`git commit -m 'Add amazing feature'`)
 6. Push (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
+
+### PR Requirements
+
+Before submitting a PR, ensure:
+
+- **Rebase from master** — always rebase on the latest `master` before opening a PR. Merge commits are not accepted.
+- **`bin/ci` passes** — run it locally. This checks rubocop style, brakeman security scan, bundler-audit, importmap audit, Ruby tests, and JavaScript tests. PRs that fail CI will not be reviewed.
+- **Tests included** — every new feature or bug fix must include tests. Ruby tests go in `test/`, JavaScript tests go in `test/javascript/`. Untested PRs will be sent back.
+- **Focused scope** — one PR should do one thing. Don't mix unrelated changes (e.g., a new feature + linter fixes + refactoring). If you spot something unrelated to fix, open a separate PR.
+
+### Architecture Guidelines
+
+This is a Rails 8 app. Follow Rails 8 idioms and conventions:
+
+- **Turbo Streams for server-rendered updates** — file tree updates, CRUD operations on files/folders, and any server-driven DOM update must use Turbo Stream responses. Do not build HTML in JavaScript from JSON API responses.
+- **`@rails/request.js` for fetch calls** — use `get`, `post`, `patch`, `destroy` from `@rails/request.js` instead of raw `fetch()`. It handles CSRF tokens and Turbo Stream content negotiation automatically.
+- **Stimulus Outlets for controller communication** — use Stimulus Outlets (`static outlets = [...]`) instead of manual `querySelector` + `getControllerForElementAndIdentifier` lookups.
+- **Config via `Config.get()`** — never read `ENV["KEY"]` directly in controllers or services. Use `Config.new.get("key_name")` which respects the `.fed` file > ENV > default priority chain. See `app/models/config.rb` for the schema.
+- **No sessions** — this app is sessionless. Do not use `session[]` for state. All persistent state goes through the `.fed` config file.
+
+### Code Style
+
+- Ruby follows the project's `.rubocop.yml`. Run `bin/rubocop -a` to auto-fix most issues.
+- JavaScript has no linter configured, but follow the existing patterns: ES module imports, Stimulus controller conventions, no semicolons.
+- Keep changes minimal. Don't add extra error handling, comments, or abstractions beyond what's needed for the task.
 
 ## Stats
 

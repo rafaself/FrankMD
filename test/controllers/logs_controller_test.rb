@@ -16,6 +16,7 @@ class LogsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "tail returns JSON with environment and file info" do
+    FileUtils.touch(@log_file) unless File.exist?(@log_file)
     get logs_tail_url, as: :json
     assert_response :success
 
