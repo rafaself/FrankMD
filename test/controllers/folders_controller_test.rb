@@ -147,4 +147,42 @@ class FoldersControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'data-path="new_folder"'
     refute_includes response.body, 'data-path="old_folder"'
   end
+
+  test "rename turbo stream remaps expanded folders from old to new path" do
+    create_test_folder("project")
+    create_test_folder("project/src")
+    create_test_note("project/src/main.md")
+    create_test_folder("other")
+    create_test_note("other/note.md")
+
+    # Both "project" and "project/src" are expanded, plus unrelated "other"
+    post rename_folder_url(path: "project"),
+      params: { new_path: "app", expanded: "project,project/src,other" },
+      headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_response :success
+
+    # Renamed folder and its children should be expanded under new path
+    assert_includes response.body, 'class="tree-chevron expanded"'
+    assert_includes response.body, 'data-path="app"'
+    assert_includes response.body, 'data-path="app/src"'
+    # Unrelated expanded folder should still be expanded
+    assert_includes response.body, 'data-path="other"'
+  end
+
+  test "rename turbo stream keeps unrelated expanded folders unchanged" do
+    create_test_folder("alpha")
+    create_test_note("alpha/note.md")
+    create_test_folder("beta")
+    create_test_note("beta/note.md")
+
+    post rename_folder_url(path: "alpha"),
+      params: { new_path: "gamma", expanded: "alpha,beta" },
+      headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_response :success
+
+    # beta should still be expanded (unaffected by the rename)
+    assert_includes response.body, 'data-path="beta"'
+    assert_includes response.body, 'data-path="gamma"'
+    refute_includes response.body, 'data-path="alpha"'
+  end
 end

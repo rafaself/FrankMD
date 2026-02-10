@@ -43,7 +43,7 @@ class FoldersController < ApplicationController
 
     if @folder.rename(new_path)
       respond_to do |format|
-        format.turbo_stream { load_tree_for_turbo_stream(selected: @folder.path) }
+        format.turbo_stream { load_tree_for_turbo_stream(selected: @folder.path, remap_from: old_path, remap_to: @folder.path) }
         format.any { render json: { old_path: old_path, new_path: @folder.path, message: t("success.folder_renamed") } }
       end
     else
@@ -59,9 +59,18 @@ class FoldersController < ApplicationController
     @folder = Folder.new(path: params[:path].to_s)
   end
 
-  def load_tree_for_turbo_stream(selected: nil)
+  def load_tree_for_turbo_stream(selected: nil, remap_from: nil, remap_to: nil)
     @tree = Note.all
     @expanded_folders = params[:expanded].to_s.split(",").to_set
+    if remap_from && remap_to
+      @expanded_folders = @expanded_folders.map { |path|
+        if path == remap_from || path.start_with?("#{remap_from}/")
+          "#{remap_to}#{path.delete_prefix(remap_from)}"
+        else
+          path
+        end
+      }.to_set
+    end
     @selected_file = selected || params[:selected].to_s
   end
 end
