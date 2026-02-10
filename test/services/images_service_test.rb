@@ -307,10 +307,14 @@ class ImagesServiceS3Test < ActiveSupport::TestCase
     @config_stub.stubs(:get).with("aws_region").returns("us-east-1")
     @config_stub.stubs(:get).with("aws_s3_bucket").returns("test-bucket")
     Config.stubs(:new).returns(@config_stub)
+
+    WebMock.disable_net_connect!(allow_localhost: true)
   end
 
   def teardown
     FileUtils.rm_rf(@temp_dir) if @temp_dir&.exist?
+    WebMock.reset!
+    WebMock.allow_net_connect!
   end
 
   def create_test_image(name, content = "fake image data")
@@ -415,6 +419,51 @@ class ImagesServiceS3Test < ActiveSupport::TestCase
     @config_stub.stubs(:get).with("aws_access_key_id").returns(nil)
 
     result = ImagesService.download_and_upload_to_s3("https://example.com/image.jpg")
+
+    assert_nil result
+  end
+
+  test "download_and_upload_to_s3 downloads image and uploads to S3" do
+    stub_request(:get, "https://example.com/photo.jpg")
+      .to_return(
+        status: 200,
+        body: "fake image content",
+        headers: { "Content-Type" => "image/jpeg" }
+      )
+
+    mock_client = stub
+    mock_client.stubs(:put_object).returns(nil)
+    Aws::S3::Client.stubs(:new).returns(mock_client)
+
+    result = ImagesService.download_and_upload_to_s3("https://example.com/photo.jpg")
+
+    assert result.present?
+    assert_match %r{^https://test-bucket\.s3\.us-east-1\.amazonaws\.com/frankmd/\d{4}/\d{2}/photo\.jpg$}, result
+  end
+
+  test "download_and_upload_to_s3 generates filename when URL has no extension" do
+    stub_request(:get, "https://example.com/images/")
+      .to_return(
+        status: 200,
+        body: "fake image content",
+        headers: { "Content-Type" => "image/png" }
+      )
+
+    mock_client = stub
+    mock_client.stubs(:put_object).returns(nil)
+    Aws::S3::Client.stubs(:new).returns(mock_client)
+
+    result = ImagesService.download_and_upload_to_s3("https://example.com/images/")
+
+    assert result.present?
+    assert_match(/\.png$/, result)
+  end
+
+  test "download_and_upload_to_s3 returns nil on download failure" do
+    stub_request(:get, "https://example.com/missing.jpg")
+      .to_return(status: 404, body: "Not Found")
+
+    result = ImagesService.download_and_upload_to_s3("https://example.com/missing.jpg")
 
     assert_nil result
   end

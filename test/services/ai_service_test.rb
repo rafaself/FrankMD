@@ -400,3 +400,179 @@ class AiServiceTest < ActiveSupport::TestCase
     assert_equal "image/jpeg", AiService.mime_type_for_path("/path/to/file.unknown")
   end
 end
+
+# === Image generation with mocked HTTP ===
+
+class AiServiceImageGenerationHttpTest < ActiveSupport::TestCase
+  def setup
+    setup_test_notes_dir
+    @original_env = {}
+    %w[GEMINI_API_KEY].each do |key|
+      @original_env[key] = ENV[key]
+      ENV.delete(key)
+    end
+    ENV["GEMINI_API_KEY"] = "test-gemini-key"
+
+    # Stub images path so ImagesService.find_image works
+    @config_stub = stub("config")
+    @config_stub.stubs(:get).returns(nil)
+    @config_stub.stubs(:get).with("images_path").returns(@test_notes_dir.to_s)
+    @config_stub.stubs(:get).with("image_generation_model").returns(nil)
+    @config_stub.stubs(:feature_available?).returns(false)
+    @config_stub.stubs(:feature_available?).with("ai").returns(true)
+    @config_stub.stubs(:ai_providers_available).returns(["gemini"])
+    @config_stub.stubs(:effective_ai_provider).returns("gemini")
+    @config_stub.stubs(:effective_ai_model).returns("gemini-2.0-flash")
+    @config_stub.stubs(:get_ai).returns(nil)
+    @config_stub.stubs(:get_ai).with("gemini_api_key").returns("test-gemini-key")
+    @config_stub.stubs(:ai_configured_in_file?).returns(false)
+    # Allow gemini_key_for_images to find the key via instance_variable_get
+    @config_stub.stubs(:instance_variable_get).with(:@values).returns({ "gemini_api_key" => "test-gemini-key" })
+    Config.stubs(:new).returns(@config_stub)
+
+    WebMock.disable_net_connect!(allow_localhost: true)
+  end
+
+  def teardown
+    teardown_test_notes_dir
+    @original_env.each do |key, value|
+      if value
+        ENV[key] = value
+      else
+        ENV.delete(key)
+      end
+    end
+    WebMock.reset!
+    WebMock.allow_net_connect!
+  end
+
+  test "generate_image_text_only returns image data on success" do
+    stub_request(:post, /generativelanguage\.googleapis\.com.*predict/)
+      .to_return(
+        status: 200,
+        body: {
+          "predictions" => [
+            {
+              "bytesBase64Encoded" => "iVBORw0KGgoAAAANSUhEUg==",
+              "mimeType" => "image/png"
+            }
+          ]
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    result = AiService.generate_image("A sunset over mountains")
+
+    assert_nil result[:error]
+    assert_equal "iVBORw0KGgoAAAANSUhEUg==", result[:data]
+    assert_equal "image/png", result[:mime_type]
+    assert_equal "imagen-4.0-generate-001", result[:model]
+  end
+
+  test "generate_image_text_only handles API error" do
+    stub_request(:post, /generativelanguage\.googleapis\.com.*predict/)
+      .to_return(
+        status: 400,
+        body: { "error" => { "message" => "Invalid prompt" } }.to_json
+      )
+
+    result = AiService.generate_image("bad prompt")
+
+    assert result[:error].present?
+    assert_includes result[:error], "Invalid prompt"
+  end
+
+  test "generate_image_with_reference returns image from Gemini" do
+    # Create a reference image file
+    ref_path = create_test_note("ref_image.png")
+    png_data = [
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+      0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+      0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xFE, 0xD4, 0xE7, 0x00, 0x00,
+      0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+    ].pack("C*")
+    File.binwrite(ref_path, png_data)
+
+    stub_request(:post, /generativelanguage\.googleapis\.com.*generateContent/)
+      .to_return(
+        status: 200,
+        body: {
+          "candidates" => [
+            {
+              "content" => {
+                "parts" => [
+                  {
+                    "inlineData" => {
+                      "data" => "edited_image_base64==",
+                      "mimeType" => "image/jpeg"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    result = AiService.generate_image("Make it brighter", reference_image_path: "ref_image.png")
+
+    assert_nil result[:error]
+    assert_equal "edited_image_base64==", result[:data]
+    assert_equal "image/jpeg", result[:mime_type]
+    assert_equal "gemini-3-pro-image-preview", result[:model]
+  end
+
+  test "generate_image_with_reference handles API error" do
+    ref_path = create_test_note("ref_image2.png")
+    File.binwrite(ref_path, "fake png data")
+
+    stub_request(:post, /generativelanguage\.googleapis\.com.*generateContent/)
+      .to_return(
+        status: 500,
+        body: { "error" => { "message" => "Internal server error" } }.to_json
+      )
+
+    result = AiService.generate_image("Edit this", reference_image_path: "ref_image2.png")
+
+    assert result[:error].present?
+    assert_includes result[:error], "Internal server error"
+  end
+
+  test "generate_image falls back to text-only when reference image not found" do
+    stub_request(:post, /generativelanguage\.googleapis\.com.*predict/)
+      .to_return(
+        status: 200,
+        body: {
+          "predictions" => [
+            { "bytesBase64Encoded" => "fallback_data==", "mimeType" => "image/png" }
+          ]
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    result = AiService.generate_image("A cat", reference_image_path: "nonexistent.png")
+
+    assert_nil result[:error]
+    assert_equal "fallback_data==", result[:data]
+  end
+
+  test "extract_image_from_gemini_response handles text-only response" do
+    response = {
+      "candidates" => [
+        {
+          "content" => {
+            "parts" => [
+              { "text" => "I cannot generate that image" }
+            ]
+          }
+        }
+      ]
+    }
+
+    result = AiService.extract_image_from_gemini_response(response, "model")
+    assert_equal "No image data in response", result[:error]
+  end
+end

@@ -48,3 +48,112 @@ class YoutubeControllerTest < ActionDispatch::IntegrationTest
     assert_includes data["error"], "required"
   end
 end
+
+class YoutubeControllerSearchTest < ActionDispatch::IntegrationTest
+  def setup
+    @original_key = ENV["YOUTUBE_API_KEY"]
+    ENV["YOUTUBE_API_KEY"] = "test_youtube_key"
+
+    @youtube_api_response = {
+      "items" => [
+        {
+          "id" => { "videoId" => "abc123" },
+          "snippet" => {
+            "title" => "Test Video Title",
+            "channelTitle" => "Test Channel",
+            "thumbnails" => {
+              "medium" => { "url" => "https://i.ytimg.com/vi/abc123/mqdefault.jpg" }
+            }
+          }
+        },
+        {
+          "id" => { "videoId" => "def456" },
+          "snippet" => {
+            "title" => "Another Video",
+            "channelTitle" => "Another Channel",
+            "thumbnails" => {
+              "default" => { "url" => "https://i.ytimg.com/vi/def456/default.jpg" }
+            }
+          }
+        }
+      ]
+    }
+
+    WebMock.disable_net_connect!(allow_localhost: true)
+
+    stub_request(:get, /googleapis\.com\/youtube\/v3\/search/)
+      .to_return(
+        status: 200,
+        body: @youtube_api_response.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+  end
+
+  def teardown
+    if @original_key
+      ENV["YOUTUBE_API_KEY"] = @original_key
+    else
+      ENV.delete("YOUTUBE_API_KEY")
+    end
+    WebMock.reset!
+    WebMock.allow_net_connect!
+  end
+
+  test "search returns videos as JSON" do
+    get "/youtube/search", params: { q: "rails tutorial" }, as: :json
+    assert_response :success
+
+    data = JSON.parse(response.body)
+    assert_equal 2, data["videos"].length
+
+    video = data["videos"].first
+    assert_equal "abc123", video["id"]
+    assert_equal "Test Video Title", video["title"]
+    assert_equal "Test Channel", video["channel"]
+    assert_equal "https://i.ytimg.com/vi/abc123/mqdefault.jpg", video["thumbnail"]
+  end
+
+  test "search falls back to default thumbnail when medium is missing" do
+    get "/youtube/search", params: { q: "test" }, as: :json
+    assert_response :success
+
+    data = JSON.parse(response.body)
+    second_video = data["videos"][1]
+    assert_equal "https://i.ytimg.com/vi/def456/default.jpg", second_video["thumbnail"]
+  end
+
+  test "search passes query to YouTube API" do
+    get "/youtube/search", params: { q: "ruby on rails" }, as: :json
+    assert_response :success
+
+    assert_requested :get, /googleapis\.com\/youtube\/v3\/search/,
+      query: hash_including("q" => "ruby on rails", "type" => "video", "maxResults" => "6")
+  end
+
+  test "search handles YouTube API error" do
+    stub_request(:get, /googleapis\.com\/youtube\/v3\/search/)
+      .to_return(status: 403, body: '{"error": {"message": "quotaExceeded"}}')
+
+    get "/youtube/search", params: { q: "test" }, as: :json
+    assert_response :success
+
+    data = JSON.parse(response.body)
+    assert_equal [], data["videos"]
+    assert data["error"].present?
+  end
+
+  test "search handles YouTube API returning empty items" do
+    stub_request(:get, /googleapis\.com\/youtube\/v3\/search/)
+      .to_return(
+        status: 200,
+        body: { "items" => [] }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    get "/youtube/search", params: { q: "obscure query" }, as: :json
+    assert_response :success
+
+    data = JSON.parse(response.body)
+    assert_equal [], data["videos"]
+  end
+end
