@@ -367,8 +367,8 @@ class NotesTest < ApplicationSystemTestCase
     find(".cm-content").click
 
     # Move cursor into the table area using keyboard
-    find(".cm-content").send_keys [:control, :end]  # Go to end
-    find(".cm-content").send_keys [:up, :up]  # Move up into table
+    find(".cm-content").send_keys [ :control, :end ]  # Go to end
+    find(".cm-content").send_keys [ :up, :up ]  # Move up into table
 
     # Wait a moment for cursor position check
     sleep 0.2

@@ -67,7 +67,7 @@ class LogsController < ApplicationController
   def mask_value(value)
     s = value.to_s
     return s if s.length <= 8
-    "#{s[0..3]}#{"*" * [s.length - 8, 4].max}#{s[-4..]}"
+    "#{s[0..3]}#{"*" * [ s.length - 8, 4 ].max}#{s[-4..]}"
   end
 
   def tail_file(path, num_lines)
@@ -83,7 +83,7 @@ class LogsController < ApplicationController
       pos = size
 
       while lines.size < num_lines && pos > 0
-        read_size = [chunk_size, pos].min
+        read_size = [ chunk_size, pos ].min
         pos -= read_size
         file.seek(pos)
         chunk = file.read(read_size)

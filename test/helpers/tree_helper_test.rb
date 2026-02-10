@@ -12,7 +12,7 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "renders file item with correct attributes" do
-    items = [{ name: "test", path: "test.md", type: "file", file_type: "markdown" }]
+    items = [ { name: "test", path: "test.md", type: "file", file_type: "markdown" } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "")
 
     assert_includes html, 'data-path="test.md"'
@@ -22,17 +22,17 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "renders selected file with selected class" do
-    items = [{ name: "test", path: "test.md", type: "file", file_type: "markdown" }]
+    items = [ { name: "test", path: "test.md", type: "file", file_type: "markdown" } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "test.md")
 
     assert_includes html, "selected"
   end
 
   test "renders folder with children" do
-    items = [{
+    items = [ {
       name: "folder1", path: "folder1", type: "folder",
-      children: [{ name: "note", path: "folder1/note.md", type: "file", file_type: "markdown" }]
-    }]
+      children: [ { name: "note", path: "folder1/note.md", type: "file", file_type: "markdown" } ]
+    } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "")
 
     assert_includes html, "tree-folder"
@@ -43,11 +43,11 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "renders expanded folder without hidden class" do
-    items = [{
+    items = [ {
       name: "folder1", path: "folder1", type: "folder",
-      children: [{ name: "note", path: "folder1/note.md", type: "file", file_type: "markdown" }]
-    }]
-    html = render_tree_items(items, expanded_folders: Set.new(["folder1"]), selected_file: "")
+      children: [ { name: "note", path: "folder1/note.md", type: "file", file_type: "markdown" } ]
+    } ]
+    html = render_tree_items(items, expanded_folders: Set.new([ "folder1" ]), selected_file: "")
 
     assert_includes html, 'class="tree-chevron expanded"'
     # Children div should not have hidden class
@@ -55,7 +55,7 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "renders config file without drag attributes" do
-    items = [{ name: ".fed", path: ".fed", type: "file", file_type: "config" }]
+    items = [ { name: ".fed", path: ".fed", type: "file", file_type: "config" } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "")
 
     assert_includes html, 'data-file-type="config"'
@@ -67,7 +67,7 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "renders regular files with drag and context menu" do
-    items = [{ name: "test", path: "test.md", type: "file", file_type: "markdown" }]
+    items = [ { name: "test", path: "test.md", type: "file", file_type: "markdown" } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "")
 
     assert_includes html, 'draggable="true"'
@@ -77,7 +77,7 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "renders folders with drag-drop actions" do
-    items = [{ name: "folder1", path: "folder1", type: "folder", children: [] }]
+    items = [ { name: "folder1", path: "folder1", type: "folder", children: [] } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "")
 
     # Data-action values are HTML-encoded by Rails content_tag
@@ -87,7 +87,7 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "handles string keys in items" do
-    items = [{ "name" => "test", "path" => "test.md", "type" => "file", "file_type" => "markdown" }]
+    items = [ { "name" => "test", "path" => "test.md", "type" => "file", "file_type" => "markdown" } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "")
 
     assert_includes html, 'data-path="test.md"'
@@ -95,7 +95,7 @@ class TreeHelperTest < ActionView::TestCase
   end
 
   test "returns empty string for empty children at non-root depth" do
-    items = [{ name: "empty", path: "empty", type: "folder", children: [] }]
+    items = [ { name: "empty", path: "empty", type: "folder", children: [] } ]
     html = render_tree_items(items, expanded_folders: Set.new, selected_file: "")
 
     assert_includes html, "tree-folder"

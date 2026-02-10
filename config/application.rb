@@ -38,7 +38,7 @@ module FrankMD
 
     # I18n configuration
     config.i18n.default_locale = :en
-    config.i18n.available_locales = [:en, :'pt-BR', :'pt-PT', :es, :he, :ja, :ko]
+    config.i18n.available_locales = [ :en, :'pt-BR', :'pt-PT', :es, :he, :ja, :ko ]
     config.i18n.fallbacks = true
 
     # Don't generate system test files.

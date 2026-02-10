@@ -466,7 +466,7 @@ class ConfigTest < ActiveSupport::TestCase
   end
 
   test "casts boolean true values" do
-    ["true", "1", "yes", "on", "TRUE", "Yes"].each do |value|
+    [ "true", "1", "yes", "on", "TRUE", "Yes" ].each do |value|
       @test_dir.join(".fed").write("typewriter_mode = #{value}")
       config = Config.new(base_path: @test_dir)
       assert_equal true, config.get(:typewriter_mode), "Expected '#{value}' to be true"
@@ -474,7 +474,7 @@ class ConfigTest < ActiveSupport::TestCase
   end
 
   test "casts boolean false values" do
-    ["false", "0", "no", "off", "FALSE", "anything"].each do |value|
+    [ "false", "0", "no", "off", "FALSE", "anything" ].each do |value|
       @test_dir.join(".fed").write("typewriter_mode = #{value}")
       config = Config.new(base_path: @test_dir)
       assert_equal false, config.get(:typewriter_mode), "Expected '#{value}' to be false"
@@ -621,7 +621,7 @@ class ConfigTest < ActiveSupport::TestCase
 
     # Should select anthropic (from file) not openai (from ENV)
     assert_equal "anthropic", config.effective_ai_provider
-    assert_equal ["anthropic"], config.ai_providers_available
+    assert_equal [ "anthropic" ], config.ai_providers_available
   end
 
   # === Config File Upgrade Tests ===

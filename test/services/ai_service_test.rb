@@ -420,7 +420,7 @@ class AiServiceImageGenerationHttpTest < ActiveSupport::TestCase
     @config_stub.stubs(:get).with("image_generation_model").returns(nil)
     @config_stub.stubs(:feature_available?).returns(false)
     @config_stub.stubs(:feature_available?).with("ai").returns(true)
-    @config_stub.stubs(:ai_providers_available).returns(["gemini"])
+    @config_stub.stubs(:ai_providers_available).returns([ "gemini" ])
     @config_stub.stubs(:effective_ai_provider).returns("gemini")
     @config_stub.stubs(:effective_ai_model).returns("gemini-2.0-flash")
     @config_stub.stubs(:get_ai).returns(nil)

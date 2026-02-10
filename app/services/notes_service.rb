@@ -160,8 +160,8 @@ class NotesService
       break if matches.size >= max_matches
 
       # Calculate context range
-      start_line = [0, index - context_lines].max
-      end_line = [lines.size - 1, index + context_lines].min
+      start_line = [ 0, index - context_lines ].max
+      end_line = [ lines.size - 1, index + context_lines ].min
 
       # Extract context with line numbers
       context = (start_line..end_line).map do |i|
@@ -197,7 +197,7 @@ class NotesService
   VISIBLE_DOTFILES = %w[.fed].freeze
 
   def build_tree(dir, relative_base = @base_path)
-    entries = dir.children.sort_by { |p| [p.directory? ? 0 : 1, -p.mtime.to_i] }
+    entries = dir.children.sort_by { |p| [ p.directory? ? 0 : 1, -p.mtime.to_i ] }
 
     entries.filter_map do |entry|
       basename = entry.basename.to_s

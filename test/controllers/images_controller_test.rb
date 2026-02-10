@@ -497,7 +497,7 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
       stub_request(:get, /googleapis\.com\/customsearch\/v1/)
         .to_return(
           status: 403,
-          body: { "error" => { "message" => "quotaExceeded", "errors" => [{ "reason" => "dailyLimitExceeded" }] } }.to_json
+          body: { "error" => { "message" => "quotaExceeded", "errors" => [ { "reason" => "dailyLimitExceeded" } ] } }.to_json
         )
 
       get "/images/search_google", params: { q: "test" }, as: :json

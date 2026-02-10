@@ -5,10 +5,10 @@
       "note": "Path validated by ImagesService.safe_path which prevents traversal"
     },
     {
-      "fingerprint": "3f4c0c88b96609e3ebd0deab29a52afc74d5e2b195365d498c4659688a4d72f8",
+      "fingerprint": "781129958f53fd0e88742ed41006daa83c60fd8e155685f4686728523c1bab74",
       "note": "Array form of Open3.capture3 prevents shell injection; source_path validated by safe_path"
     }
   ],
-  "updated": "2026-01-30",
-  "brakeman_version": "8.0.1"
+  "updated": "2026-02-10",
+  "brakeman_version": "8.0.2"
 }
