@@ -9,6 +9,13 @@ import { encodePath } from "lib/url_utils"
 export default class extends Controller {
   static targets = ["tree"]
 
+  get expandedFolders() {
+    const appEl = document.querySelector('[data-controller~="app"]')
+    if (!appEl) return ""
+    const app = this.application.getControllerForElementAndIdentifier(appEl, "app")
+    return app?.expandedFolders ? [...app.expandedFolders].join(",") : ""
+  }
+
   connect() {
     this.draggedItem = null
     this.activeDropTargetId = null
@@ -210,13 +217,12 @@ export default class extends Controller {
     try {
       const endpoint = type === "file" ? "notes" : "folders"
       const response = await post(`/${endpoint}/${encodePath(oldPath)}/rename`, {
-        body: { new_path: newPath },
-        responseKind: "json"
+        body: { new_path: newPath, expanded: this.expandedFolders },
+        responseKind: "turbo-stream"
       })
 
       if (!response.ok) {
-        const data = await response.json
-        throw new Error(data.error || window.t("errors.failed_to_move"))
+        throw new Error(window.t("errors.failed_to_move"))
       }
 
       // Dispatch event for parent controller to handle state updates

@@ -447,6 +447,63 @@ describe("DragDropController", () => {
     })
   })
 
+  describe("expandedFolders", () => {
+    it("returns empty string when no app controller found", () => {
+      expect(controller.expandedFolders).toBe("")
+    })
+
+    it("returns comma-separated expanded folders from app controller", () => {
+      const appEl = document.createElement("div")
+      appEl.setAttribute("data-controller", "app")
+      document.body.appendChild(appEl)
+
+      const mockApp = { expandedFolders: new Set(["folder1", "folder2"]) }
+      vi.spyOn(controller.application, "getControllerForElementAndIdentifier")
+        .mockReturnValue(mockApp)
+
+      const result = controller.expandedFolders
+      expect(result).toContain("folder1")
+      expect(result).toContain("folder2")
+      expect(result.split(",")).toHaveLength(2)
+
+      appEl.remove()
+    })
+  })
+
+  describe("moveItem()", () => {
+    it("sends turbo-stream request with expanded folders", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        statusCode: 200,
+        headers: new Headers({ "content-type": "text/vnd.turbo-stream.html" }),
+        text: Promise.resolve("")
+      })
+
+      const dispatchSpy = vi.spyOn(controller, "dispatch")
+
+      await controller.moveItem("folder1/file1.md", "folder2/file1.md", "file")
+
+      expect(global.fetch).toHaveBeenCalled()
+      const [url, options] = global.fetch.mock.calls[0]
+      expect(url).toContain("/notes/folder1/file1.md/rename")
+      expect(options.body).toContain("new_path")
+      expect(options.body).toContain("expanded")
+
+      expect(dispatchSpy).toHaveBeenCalledWith("item-moved", {
+        detail: { oldPath: "folder1/file1.md", newPath: "folder2/file1.md", type: "file" }
+      })
+    })
+
+    it("alerts on error", async () => {
+      global.fetch = vi.fn().mockRejectedValue(new Error("Network error"))
+      global.alert = vi.fn()
+
+      await controller.moveItem("folder1/file1.md", "folder2/file1.md", "file")
+
+      expect(global.alert).toHaveBeenCalledWith("Network error")
+    })
+  })
+
   describe("disconnect()", () => {
     it("clears state", () => {
       controller.draggedItem = { path: "test.md", type: "file" }

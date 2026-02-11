@@ -313,17 +313,19 @@ export default class extends Controller {
 
   // === Drag and Drop Event Handler ===
   // Handle item moved event from drag-drop controller
-  async onItemMoved(event) {
+  onItemMoved(event) {
     const { oldPath, newPath, type } = event.detail
 
-    // Update current file reference if it was moved
-    if (this.currentFile === oldPath) {
-      this.currentFile = newPath
-      this.updatePathDisplay(newPath.replace(/\.md$/, ""))
-    } else if (type === "folder" && this.currentFile && this.currentFile.startsWith(oldPath + "/")) {
-      // If a folder containing the current file was moved
-      this.currentFile = this.currentFile.replace(oldPath, newPath)
-      this.updatePathDisplay(this.currentFile.replace(/\.md$/, ""))
+    if (type === "folder") {
+      // Preserve expand/collapse state for moved folder and its descendants
+      this.expandedFolders = new Set(
+        Array.from(this.expandedFolders, (path) => {
+          if (path === oldPath || path.startsWith(oldPath + "/")) {
+            return `${newPath}${path.slice(oldPath.length)}`
+          }
+          return path
+        })
+      )
     }
 
     // Expand the target folder
@@ -332,7 +334,20 @@ export default class extends Controller {
       this.expandedFolders.add(targetFolder)
     }
 
-    await this.refreshTree()
+    // Update current file reference if it was moved
+    if (type === "folder" && this.currentFile?.startsWith(oldPath + "/")) {
+      this.currentFile = `${newPath}${this.currentFile.slice(oldPath.length)}`
+      this.updatePathDisplay(this.currentFile.replace(/\.md$/, ""))
+      this.updateUrl(this.currentFile)
+    }
+
+    if (this.currentFile === oldPath) {
+      this.currentFile = newPath
+      this.updatePathDisplay(newPath.replace(/\.md$/, ""))
+      this.updateUrl(newPath)
+    }
+
+    // Tree is already updated by Turbo Stream
   }
 
   // === File Selection and Editor ===
