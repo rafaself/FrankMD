@@ -1074,7 +1074,13 @@ export default class extends Controller {
     }
 
     // Editor pane → full-width preview
-    previewController.show()
+    const codemirrorController = this.getCodemirrorController()
+    const scrollAnchor = {
+      sourceLine: codemirrorController?.getTopVisibleLine?.() ?? null,
+      scrollRatio: codemirrorController?.getScrollRatio?.() ?? 0
+    }
+
+    previewController.show({ scrollAnchor })
     editorPanel?.classList.add("hidden")
     return true
   }

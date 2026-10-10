@@ -147,6 +147,8 @@ export function findElementByLine(container, targetLine) {
   let closest = null
   let closestDistance = Infinity
 
+  // Nested list containers can appear before child items with earlier source
+  // lines, so inspect all anchors instead of assuming DOM order is sorted.
   for (const el of elements) {
     const line = parseInt(el.dataset.sourceLine, 10)
     const distance = Math.abs(line - targetLine)
@@ -155,9 +157,6 @@ export function findElementByLine(container, targetLine) {
       closestDistance = distance
       closest = el
     }
-
-    // If we found an exact match or passed the target, stop
-    if (line >= targetLine) break
   }
 
   return closest

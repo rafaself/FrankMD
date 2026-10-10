@@ -120,14 +120,16 @@ export default class extends Controller {
   }
 
   onPreviewToggled(event) {
-    const { visible } = event.detail
+    const { visible, scrollAnchor } = event.detail
     if (visible) {
       this.updatePreview()
       const codemirrorController = this.getCodemirrorController()
       const previewController = this.getPreviewController()
       if (codemirrorController && previewController) {
         this._markScrollFromEditor()
-        if (this.typewriterModeEnabled) {
+        if (scrollAnchor) {
+          previewController.restoreScrollAnchor(scrollAnchor)
+        } else if (this.typewriterModeEnabled) {
           const syncData = codemirrorController.getTypewriterSyncData()
           if (syncData) {
             previewController.syncToTypewriter(syncData.currentLine, syncData.totalLines)
@@ -229,6 +231,11 @@ export default class extends Controller {
     const codemirrorController = this.getCodemirrorController()
     if (!previewController || !codemirrorController) return
     if (!previewController.isVisible) return
+
+    // In single-pane mode the preview is the active viewport. Re-anchoring it
+    // from the hidden editor would replace its visible position with the caret
+    // line when Typewriter mode is enabled.
+    if (document.body.classList.contains("single-view-mode")) return
 
     if (this.typewriterModeEnabled && this._scrollSource !== "preview") {
       const syncData = codemirrorController.getTypewriterSyncData()

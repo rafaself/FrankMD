@@ -181,7 +181,7 @@ export default class extends Controller {
   }
 
   // Show preview panel
-  show() {
+  show({ scrollAnchor } = {}) {
     if (!this.hasPanelTarget) return
     if (!this.panelTarget.classList.contains("hidden")) return
 
@@ -191,7 +191,9 @@ export default class extends Controller {
     // Invalidate content cache to ensure fresh render when shown
     this._lastRenderedContent = null
     this.lastScrollTarget = null
-    this.dispatch("toggled", { detail: { visible: true } })
+    const detail = { visible: true }
+    if (scrollAnchor) detail.scrollAnchor = scrollAnchor
+    this.dispatch("toggled", { detail })
   }
 
   // Hide preview panel
@@ -382,6 +384,18 @@ export default class extends Controller {
   // ratio-derived line, keeping the mapping exact (incl. frontmatter offsets).
   syncScrollRatio(scrollRatio, sourceLine = null) {
     if (!this.syncScrollEnabledValue) return
+    this._scrollToSourcePosition(scrollRatio, sourceLine)
+  }
+
+  // Restore a one-time editor anchor when entering single-pane preview. This is
+  // separate from continuous scroll sync, so the view switch works even when
+  // the user has disabled live editor/preview mirroring.
+  restoreScrollAnchor(anchor) {
+    if (!anchor || !this.isVisible || !this.hasContentTarget) return
+    this._scrollToSourcePosition(anchor.scrollRatio, anchor.sourceLine)
+  }
+
+  _scrollToSourcePosition(scrollRatio, sourceLine = null) {
     if (!this.isVisible) return
     if (!this.hasContentTarget) return
 
