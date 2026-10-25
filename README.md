@@ -1028,6 +1028,59 @@ docker run -p 7591:80 -v $(pwd)/notes:/rails/notes frankmd
 
 MIT License - see [LICENSE](LICENSE) for details.
 
+## Creation destination
+
+New Note (including Ctrl+N) and New Folder use the single selected Explorer folder.
+With no folder selected, a file selected, or multiple items selected, they use the
+notes root. Clear the Explorer selection to create at the root. The dialog shows
+the destination before creation. Hugo templates ignore this automatic folder
+selection and retain their normal destination; explicitly chosen context-menu or
+Hugo workspace destinations are preserved.
+
+## Home and shared recent files
+
+Click the FrankMD logo or Home action to return to Home. It shows the ten most
+recently opened Markdown files, shared by browsers connected to the same notes
+workspace. Only paths and opening timestamps are stored in `.fed`; note contents
+are not copied. FrankMD updates history after renames and moves, removes deleted
+entries, and filters files deleted outside the app when Home loads. Temporary
+connection and permission failures do not erase history. Clearing shared history
+affects every device using that notes folder. Opening notes still works if history
+cannot be saved. Independent servers using asynchronous folder synchronization
+follow that synchronization tool's conflict behavior.
+
+## Surround selected text
+
+Select text and type `*`, `_`, a backtick, `~`, `^`, or `=` to surround it with
+matching Markdown markers. The inner text stays selected: typing `*` twice gives
+bold, and typing `=` twice gives highlighted text. Existing formatting shortcuts
+keep their toggle behavior. Multiple and backward selections are preserved;
+empty cursors keep normal typing behavior. Pasting and IME composition are not
+changed. Backticks inside the selection use a longer delimiter automatically.
+
+## Enlarge preview images
+
+Click an image in the Markdown preview, or focus it and press Enter/Space, to open
+an image overlay. Close it with the top-right button, Escape, or the backdrop.
+Linked images retain their link behavior and have a separate enlarge button.
+Images fit the viewport, and closing the overlay returns keyboard focus to the
+image control (or the preview if the image was replaced while it was open).
+
+## Create a custom theme
+
+In Settings → General, choose **Customize theme**. Start from a built-in theme,
+name your palette, and change the accent, background, and text colors. Advanced
+colors include surfaces, borders, selection, headings, status colors, and code
+syntax roles. The application and sample note preview changes immediately;
+Cancel or Escape restores the previous appearance. Save writes the custom theme
+and its selection to `.fed`, so browsers using the same notes workspace can use
+it. One custom theme is saved per workspace; Customize opens it for further edits.
+
+Unchanged colors inherit from the base theme. **Reset colors** clears overrides,
+and low-contrast combinations display a warning. Built-in themes remain available
+in the theme selector. Fonts and sizes retain their existing Editor settings.
+Custom themes accept color values only, without arbitrary CSS or external assets.
+
 ## Contributing
 
 ### Getting Started
