@@ -6,14 +6,18 @@ class NotesTest < ApplicationSystemTestCase
   test "visiting the home page shows the app" do
     visit root_url
 
-    assert_selector "header [data-app-target='documentTitle'][disabled]"
+    # Home intentionally hides the document header (issue #255); the explorer
+    # and the Home introduction are what the landing page must show.
+    assert_selector "header[hidden] [data-app-target='documentTitle'][disabled]", visible: :all
+    assert_selector "#home-title", text: "FrankMD"
     assert_selector "[data-app-target='fileTree']"
   end
 
-  test "empty state shows placeholder message" do
+  test "home hides the editor placeholder and shows its own introduction" do
     visit root_url
 
-    assert_selector "[data-app-target='editorPlaceholder']", text: "Select a note to edit"
+    assert_no_text "Select a note to edit"
+    assert_selector ".home-intro .home-description"
   end
 
   test "existing notes appear in the file tree" do
@@ -91,11 +95,12 @@ class NotesTest < ApplicationSystemTestCase
 
     assert_no_selector "dialog[open]", wait: 2
 
-    # Hugo posts create dated page bundles: YYYY/MM/DD/slug/index.md
+    # Toolbar Hugo posts create dated page bundles inside blog.
     date_path = Time.current.strftime("%Y/%m/%d")
-    expected = @test_notes_dir.join(date_path, "hello-world", "index.md")
+    expected = @test_notes_dir.join("blog", date_path, "hello-world", "index.md")
     assert expected.exist?, "expected #{expected} to exist"
-    assert_selector "[data-path='#{date_path}/hello-world/index.md']", wait: 3
+    assert_selector "[data-path='blog/#{date_path}/hello-world/index.md']", wait: 3
+    assert_not @test_notes_dir.join(date_path, "hello-world", "index.md").exist?
   end
 
   test "new note dialog template card titles do not clip in longer locales" do

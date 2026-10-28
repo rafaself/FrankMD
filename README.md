@@ -740,7 +740,7 @@ FrankMD can create Hugo-compatible blog posts. When you click the "New Note" but
 
 When you create a Hugo blog post with a title like "My Amazing Post Title", FrankMD will:
 
-1. Create the directory structure: `YYYY/MM/DD/my-amazing-post-title/`
+1. Create the directory structure: `blog/YYYY/MM/DD/my-amazing-post-title/` (or under an explicitly chosen folder)
 2. Create `index.md` inside with Hugo frontmatter:
 
 ```yaml
@@ -1033,15 +1033,17 @@ MIT License - see [LICENSE](LICENSE) for details.
 New Note (including Ctrl+N) and New Folder use the single selected Explorer folder.
 With no folder selected, a file selected, or multiple items selected, they use the
 notes root. Clear the Explorer selection to create at the root. The dialog shows
-the destination before creation. Hugo templates ignore this automatic folder
-selection and retain their normal destination; explicitly chosen context-menu or
-Hugo workspace destinations are preserved.
+the destination before creation. Hugo templates use `blog` instead of this
+automatic folder selection; explicitly chosen context-menu or Hugo workspace
+destinations are preserved.
 
 ## Home and shared recent files
 
-Click the FrankMD logo or Home action to return to Home. It shows the ten most
-recently opened Markdown files, shared by browsers connected to the same notes
-workspace. Only paths and opening timestamps are stored in `.fed`; note contents
+Use the Home action in the sidebar footer to return to Home. It shows five recent
+Markdown files with their relative opening times. Show more reveals the remaining
+history (up to ten files) and scrolls down; Show less returns to five. The recent
+section is omitted when history is empty. History is shared by browsers connected
+to the same notes workspace. Only paths and opening timestamps are stored in `.fed`; note contents
 are not copied. FrankMD updates history after renames and moves, removes deleted
 entries, and filters files deleted outside the app when Home loads. Temporary
 connection and permission failures do not erase history. Clearing shared history
